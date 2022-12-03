@@ -4,27 +4,47 @@ fn main() {
     println!("Problem 2: {}", problem2(input));
 }
 
-fn score_round(line: &str) -> u32 {
-    match line.split_once(" ").unwrap() {
-        ("A", "X") => 1 + 3,
-        ("B", "X") => 1 + 0,
-        ("C", "X") => 1 + 6,
-        ("A", "Y") => 2 + 6,
-        ("B", "Y") => 2 + 3,
-        ("C", "Y") => 2 + 0,
-        ("A", "Z") => 3 + 0,
-        ("B", "Z") => 3 + 6,
-        ("C", "Z") => 3 + 3,
-        _ => unreachable!("Invalid input"),
-    }
-}
+const ROCK: u32 = 1;
+const PAPER: u32 = 2;
+const SCISSORS: u32 = 3;
+const LOSE: u32 = 0;
+const TIE: u32 = 3;
+const WIN: u32 = 6;
 
 fn problem1(input: &str) -> u32 {
-    input.lines().map(score_round).sum()
+    input
+        .lines()
+        .map(|line| match line.split_once(" ").unwrap() {
+            ("A", "X") => ROCK + TIE,
+            ("B", "X") => ROCK + LOSE,
+            ("C", "X") => ROCK + WIN,
+            ("A", "Y") => PAPER + WIN,
+            ("B", "Y") => PAPER + TIE,
+            ("C", "Y") => PAPER + LOSE,
+            ("A", "Z") => SCISSORS + LOSE,
+            ("B", "Z") => SCISSORS + WIN,
+            ("C", "Z") => SCISSORS + TIE,
+            _ => unreachable!("Invalid input"),
+        })
+        .sum()
 }
 
 fn problem2(input: &str) -> u32 {
-    0
+    input
+        .lines()
+        .map(|line| match line.split_once(" ").unwrap() {
+            ("A", "X") => LOSE + SCISSORS,
+            ("B", "X") => LOSE + ROCK,
+            ("C", "X") => LOSE + PAPER,
+            ("A", "Y") => TIE + ROCK,
+            ("B", "Y") => TIE + PAPER,
+            ("C", "Y") => TIE + SCISSORS,
+            ("A", "Z") => WIN + PAPER,
+            ("B", "Z") => WIN + SCISSORS,
+            ("C", "Z") => WIN + ROCK,
+            _ => unreachable!("Invalid input"),
+        })
+        .sum()
 }
 
 #[test]
@@ -38,5 +58,5 @@ fn test_problem1() {
 fn test_problem2() {
     let input = include_str!("../data/sample.txt");
     let res = problem2(input);
-    assert_eq!(res, 0);
+    assert_eq!(res, 12);
 }
