@@ -2,11 +2,12 @@ name: Update README ⭐
 on:
   schedule:
     # run at...
-    # 51 minutes past every 4th hour
-    # on every day of the month
+    # 49 minutes past the hour
+    # every 4th hour
+    # on days 1-25
     # only in December
     # every day of the week.
-    - cron: "51 */4 * 12 *"
+    - cron: "49 */4 1-25 12 *"
   workflow_dispatch:
 
 jobs:
