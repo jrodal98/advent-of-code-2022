@@ -16,15 +16,16 @@ day_num_zero_padded="${zeros:${#day_num}:${#zeros}}${day_num}"
 # construct directory name
 directory_name="${solutions}/${day_dir_base}$day_num_zero_padded"
 
-temp_sample_input_file=$(mktemp)
-echo "Paste sample input here (and delete this line!)" >"$temp_sample_input_file"
-${VISUAL:-${EDITOR:-vi}} "$temp_sample_input_file"
-read -rp 'Sample solution: ' sample_solution
-
 mkdir "$directory_name"
 cd "$directory_name" || exit
 cargo init
 mkdir data
+
+sample_file="data/sample.txt"
+echo "Paste sample input here (and delete this line!)" >"$sample_file"
+${VISUAL:-${EDITOR:-vi}} "$sample_file"
+
+read -rp 'Sample solution: ' sample_solution
 
 input_file="data/input.txt"
 if [ -z "$AOC_SESSION" ]; then
@@ -34,7 +35,8 @@ else
   curl --cookie "session=${AOC_SESSION}" "https://adventofcode.com/2022/day/$day_num/input" >"$input_file"
 fi
 
-mv "$temp_sample_input_file" data/sample.txt
-sed "s/PART1_SAMPLE_SOLUTION/$sample_solution/" "$rs_template_file" >src/main.rs
+rust_main_file="src/main.rs"
 
-${VISUAL:-${EDITOR:-vi}} src/main.rs
+sed "s/PART1_SAMPLE_SOLUTION/$sample_solution/" "$rs_template_file" >"$rust_main_file"
+
+${VISUAL:-${EDITOR:-vi}} "$rust_main_file" "$sample_file" "$input_file"
