@@ -1,3 +1,4 @@
+[![Update README ⭐](https://github.com/jrodal98/advent-of-code-2022/actions/workflows/readme-stars.yml/badge.svg)](https://github.com/jrodal98/advent-of-code-2022/actions/workflows/readme-stars.yml)
 # Advent of code 2022
 
 <!--- advent_readme_stars table --->
