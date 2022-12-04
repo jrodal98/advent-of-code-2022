@@ -16,10 +16,6 @@ jobs:
           userid: ${{ secrets.AOC_USER_ID }} # your user id, see setup on how to obtain
           session: ${{ secrets.AOC_SESSION }} # secret containing session code, see setup on how to obtain
 
-          # Optional inputs
-          year: 2022 # The year for which stats should be retrieved
-          starsRegex: '(?<=https:\/\/img\.shields\.io\/badge\/Stars%202022%20⭐-)[0-9]+(?=-yellow)' # Regular expression that finds the content of the stars badge in your file.
-
       - uses: stefanzweifel/git-auto-commit-action@v4 # Step that pushes these local changes back to your github repo
         with:
           commit_message: Update badges
