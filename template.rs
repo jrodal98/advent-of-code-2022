@@ -5,18 +5,18 @@ fn main() {
 }
 
 fn problem1(input: &str) -> u32 {
-    0
+    unimplemented!()
 }
 
 fn problem2(input: &str) -> u32 {
-    0
+    unimplemented!()
 }
 
 #[test]
 fn test_problem1() {
     let input = include_str!("../data/sample.txt");
     let res = problem1(input);
-    assert_eq!(res, 0);
+    assert_eq!(res, PART1_SAMPLE_SOLUTION);
 }
 
 #[test]
@@ -25,4 +25,3 @@ fn test_problem2() {
     let res = problem2(input);
     assert_eq!(res, 0);
 }
-
