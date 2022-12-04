@@ -5,9 +5,6 @@ on:
 
   workflow_dispatch: # allow to manually start the workflow
 
-  push:#  Run on push, be carefull with this setting
-    # as the workflow should only be triggered at a rate lower than
-    # 4 times a hour to keep traffic on aoc site low
 jobs:
   update:
     runs-on: ubuntu-latest
