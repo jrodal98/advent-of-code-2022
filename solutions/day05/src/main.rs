@@ -9,12 +9,11 @@ fn get_stacks(stacks_str: &str) -> Vec<Vec<char>> {
     let mut stacks: Vec<Vec<char>> = vec![vec![]; num_columns];
 
     for line in stacks_str.lines() {
-        line.chars()
-            .collect::<Vec<char>>()
+        line.as_bytes()
             .chunks(4)
             .enumerate()
-            .filter(|(_, chunk)| chunk[1].is_alphabetic())
-            .for_each(|(i, chunk)| stacks[i].insert(0, chunk[1]));
+            .filter(|(_, chunk)| (chunk[1] as char).is_alphabetic())
+            .for_each(|(i, chunk)| stacks[i].insert(0, chunk[1] as char));
     }
 
     stacks
