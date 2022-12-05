@@ -1,32 +1,28 @@
-use std::{iter::Peekable, str::Lines};
-
 fn main() {
     let input = include_str!("../data/input.txt");
     println!("Problem 1: {}", problem1(input));
     println!("Problem 2: {}", problem2(input));
 }
 
-fn get_stacks(lines: &mut Peekable<Lines>) -> Vec<Vec<char>> {
-    let num_columns = (lines.peek().unwrap().chars().count() + 1) / 4;
+fn get_stacks(stacks_str: &str) -> Vec<Vec<char>> {
+    let num_columns = (stacks_str.lines().next().unwrap().chars().count() + 1) / 4;
     let mut stacks: Vec<Vec<char>> = vec![vec![]; num_columns];
 
-    while !lines.peek().unwrap().trim().is_empty() {
-        lines
-            .next()
-            .unwrap()
-            .chars()
-            .collect::<Vec<char>>()
-            .chunks(4)
-            .enumerate()
-            .map(|(box_num, chunk)| {
-                if let Some(c) = chunk.iter().filter(|c| c.is_uppercase()).next() {
-                    stacks[box_num].insert(0, *c);
-                }
-            })
-            .count();
-    }
-
-    lines.next().unwrap(); // consume empty line
+    stacks_str
+        .lines()
+        .map(|line| {
+            line.chars()
+                .collect::<Vec<char>>()
+                .chunks(4)
+                .enumerate()
+                .map(|(box_num, chunk)| {
+                    if let Some(c) = chunk.iter().filter(|c| c.is_uppercase()).next() {
+                        stacks[box_num].insert(0, *c);
+                    }
+                })
+                .count();
+        })
+        .count();
     stacks
 }
 
@@ -41,19 +37,13 @@ fn line_to_move_instruction(line: &str) -> (usize, usize, usize) {
     (tokens[0], tokens[1] - 1, tokens[2] - 1)
 }
 
-fn stacks_to_string(stacks: Vec<Vec<char>>) -> String {
-    stacks
-        .into_iter()
-        .map(|mut stack| stack.pop().unwrap())
-        .collect()
-}
-
 fn solve_problem(input: &str, preserve_order: bool) -> String {
-    let mut lines = input.lines().peekable();
-    let mut stacks = get_stacks(&mut lines);
+    let (stacks_str, instruction_str) = input.split_once("\n\n").unwrap();
 
-    while lines.peek().is_some() {
-        let (num_boxes, from, to) = line_to_move_instruction(lines.next().unwrap());
+    let mut stacks = get_stacks(stacks_str);
+
+    for line in instruction_str.lines() {
+        let (num_boxes, from, to) = line_to_move_instruction(line);
         let mut boxes_to_push = vec![];
 
         for _ in 0..num_boxes {
@@ -72,7 +62,10 @@ fn solve_problem(input: &str, preserve_order: bool) -> String {
         }
     }
 
-    stacks_to_string(stacks)
+    stacks
+        .into_iter()
+        .map(|mut stack| stack.pop().unwrap())
+        .collect()
 }
 
 fn problem1(input: &str) -> String {
