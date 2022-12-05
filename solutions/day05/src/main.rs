@@ -56,7 +56,7 @@ fn solve_problem(input: &str, preserve_order: bool) -> String {
 
     stacks
         .into_iter()
-        .map(|mut stack| stack.pop().unwrap())
+        .filter_map(|mut stack| stack.pop())
         .collect()
 }
 
