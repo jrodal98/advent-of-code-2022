@@ -8,30 +8,21 @@ fn get_stacks(stacks_str: &str) -> Vec<Vec<char>> {
     let num_columns = (stacks_str.lines().next().unwrap().chars().count() + 1) / 4;
     let mut stacks: Vec<Vec<char>> = vec![vec![]; num_columns];
 
-    stacks_str
-        .lines()
-        .map(|line| {
-            line.chars()
-                .collect::<Vec<char>>()
-                .chunks(4)
-                .enumerate()
-                .map(|(box_num, chunk)| {
-                    if let Some(c) = chunk.iter().filter(|c| c.is_uppercase()).next() {
-                        stacks[box_num].insert(0, *c);
-                    }
-                })
-                .count();
-        })
-        .count();
+    for line in stacks_str.lines() {
+        for (box_num, chunk) in line.chars().collect::<Vec<char>>().chunks(4).enumerate() {
+            if let Some(c) = chunk.iter().filter(|c| c.is_uppercase()).next() {
+                stacks[box_num].insert(0, *c);
+            }
+        }
+    }
+
     stacks
 }
 
 fn line_to_move_instruction(line: &str) -> (usize, usize, usize) {
     let tokens: Vec<usize> = line
         .split_whitespace()
-        .map(|word| word.parse::<usize>())
-        .filter(|word| word.is_ok())
-        .map(|num| num.unwrap())
+        .filter_map(|word| word.parse::<usize>().ok())
         .collect();
 
     (tokens[0], tokens[1] - 1, tokens[2] - 1)
@@ -44,7 +35,7 @@ fn solve_problem(input: &str, preserve_order: bool) -> String {
 
     for line in instruction_str.lines() {
         let (num_boxes, from, to) = line_to_move_instruction(line);
-        let mut boxes_to_push = vec![];
+        let mut boxes_to_push = Vec::new();
 
         for _ in 0..num_boxes {
             let val = stacks[from].pop().unwrap();
