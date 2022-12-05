@@ -8,17 +8,14 @@ fn get_stacks(stacks_str: &str) -> Vec<Vec<char>> {
     let num_columns = (stacks_str.lines().next().unwrap().chars().count() + 1) / 4;
     let mut stacks: Vec<Vec<char>> = vec![vec![]; num_columns];
 
-    stacks_str.lines().for_each(|line| {
+    for line in stacks_str.lines() {
         line.chars()
             .collect::<Vec<char>>()
             .chunks(4)
             .enumerate()
-            .for_each(|(box_num, chunk)| {
-                if chunk[1].is_alphabetic() {
-                    stacks[box_num].insert(0, chunk[1]);
-                }
-            })
-    });
+            .filter(|(_, chunk)| chunk[1].is_alphabetic())
+            .for_each(|(i, chunk)| stacks[i].insert(0, chunk[1]));
+    }
 
     stacks
 }
