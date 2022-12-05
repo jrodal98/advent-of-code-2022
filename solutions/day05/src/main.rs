@@ -12,7 +12,7 @@ fn get_stacks(stacks_str: &str) -> Vec<Vec<char>> {
         line.as_bytes()
             .chunks(4)
             .enumerate()
-            .filter(|(_, chunk)| (chunk[1] as char).is_alphabetic())
+            .filter(|(_, chunk)| chunk[0] == b'[')
             .for_each(|(i, chunk)| stacks[i].insert(0, chunk[1] as char));
     }
 
