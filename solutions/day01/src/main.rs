@@ -4,37 +4,39 @@ fn main() {
     println!("Problem 2: {}", problem2(input));
 }
 
-fn problem1(input: &str) -> u32 {
-    let mut max = 0;
-    let mut elf_calories = 0;
-    for line in input.lines().map(|s| s.trim()) {
-        if line.is_empty() {
-            if elf_calories > max {
-                max = elf_calories;
-            }
-            elf_calories = 0;
-        } else {
-            elf_calories += str::parse::<u32>(line).unwrap();
-        }
+fn get_sums_iter(input: &str) -> impl Iterator<Item = u32> + '_ {
+    input.split("\n\n").map(|section| {
+        section
+            .lines()
+            .map(|cal_str| cal_str.parse::<u32>().unwrap())
+            .sum()
+    })
+}
+
+fn update_top_three(s: u32, top_three: &mut [u32; 3]) {
+    if s > top_three[0] {
+        top_three[2] = top_three[1];
+        top_three[1] = top_three[0];
+        top_three[0] = s;
+    } else if s > top_three[1] {
+        top_three[2] = top_three[1];
+        top_three[1] = s;
+    } else if s > top_three[2] {
+        top_three[2] = s;
     }
-    max
+}
+
+fn problem1(input: &str) -> u32 {
+    get_sums_iter(input).max().unwrap()
 }
 
 fn problem2(input: &str) -> u32 {
-    let mut all_elf_calories = vec![0];
-    let mut elf = 0;
-    for line in input.lines().map(|s| s.trim()) {
-        if line.is_empty() {
-            all_elf_calories.push(0);
-            elf += 1;
-        } else {
-            all_elf_calories[elf] += str::parse::<u32>(line).unwrap();
-        }
+    let mut top_three = [0; 3];
+    for s in get_sums_iter(input) {
+        update_top_three(s, &mut top_three);
     }
 
-    all_elf_calories.sort();
-
-    all_elf_calories.iter().rev().take(3).sum()
+    top_three.into_iter().sum()
 }
 
 #[test]
