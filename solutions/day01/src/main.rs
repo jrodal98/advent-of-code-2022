@@ -13,7 +13,7 @@ fn get_sums_iter(input: &str) -> impl Iterator<Item = u32> + '_ {
     })
 }
 
-fn update_top_three(s: u32, top_three: &mut [u32; 3]) {
+fn get_top_three(mut top_three: [u32; 3], s: u32) -> [u32; 3] {
     if s > top_three[0] {
         top_three[2] = top_three[1];
         top_three[1] = top_three[0];
@@ -24,6 +24,7 @@ fn update_top_three(s: u32, top_three: &mut [u32; 3]) {
     } else if s > top_three[2] {
         top_three[2] = s;
     }
+    top_three
 }
 
 fn problem1(input: &str) -> u32 {
@@ -31,12 +32,10 @@ fn problem1(input: &str) -> u32 {
 }
 
 fn problem2(input: &str) -> u32 {
-    let mut top_three = [0; 3];
-    for s in get_sums_iter(input) {
-        update_top_three(s, &mut top_three);
-    }
-
-    top_three.into_iter().sum()
+    get_sums_iter(input)
+        .fold([0; 3], get_top_three)
+        .into_iter()
+        .sum()
 }
 
 #[test]
