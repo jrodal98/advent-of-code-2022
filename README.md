@@ -17,7 +17,7 @@
 
 ## Directory generation script
 
-`generate_dir.sh` is a Bash script for creating a directory for a solutions to Advent of Code and initializing a Rust project in it. It creates a src/main.rs file based on `template.rs` and injects the user provided sample solution to part 1 of the challenge into a unit test. It also prompts the user to enter the sample input file. If the user has set the AOC_SESSION environment variable, it will download the problem input, otherwise it will prompt the user to provide the problem input as well. Finally, the script opens the rust file, the sample input file, and the problem input file after they have been created.
+`generate_dir.sh` is a Bash script for creating a directory for solutions to Advent of Code and initializing a Rust project in it. It creates a src/main.rs file based on `template.rs` and injects the user provided sample solution to part 1 of the challenge into a unit test. It also prompts the user to enter the sample input file. If the user has set the AOC_SESSION environment variable, it will download the problem input, otherwise it will prompt the user to provide the problem input as well. Finally, the script opens the rust file, the sample input file, and the problem input file after they have been created.
 
 To get your session token:
 
