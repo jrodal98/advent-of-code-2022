@@ -11,8 +11,7 @@ fn solve_problem(input: &str, num_distinct_chars: usize) -> usize {
         .as_bytes()
         .windows(num_distinct_chars)
         .enumerate()
-        .filter(|(_, window)| window.iter().collect::<HashSet<_>>().len() == num_distinct_chars)
-        .next()
+        .find(|(_, window)| window.iter().collect::<HashSet<_>>().len() == num_distinct_chars)
         .unwrap()
         .0
         + num_distinct_chars
