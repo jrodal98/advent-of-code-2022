@@ -10,11 +10,9 @@ fn solve_problem(input: &str, num_distinct_chars: usize) -> usize {
     input
         .as_bytes()
         .windows(num_distinct_chars)
-        .enumerate()
-        .find(|(_, window)| window.iter().collect::<HashSet<_>>().len() == num_distinct_chars)
+        .position(|window| window.iter().collect::<HashSet<_>>().len() == num_distinct_chars)
+        .map(|i| i + num_distinct_chars)
         .unwrap()
-        .0
-        + num_distinct_chars
 }
 
 fn problem1(input: &str) -> usize {
