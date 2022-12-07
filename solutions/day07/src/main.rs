@@ -9,13 +9,13 @@ fn main() {
     println!("Problem 2: {}", problem2(input));
 }
 
-#[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct File<'a> {
     name: &'a str,
     size: u32,
 }
 
-#[derive(Debug, Clone)]
+#[allow(dead_code)]
 struct Directory<'a> {
     name: &'a str,
     directories: HashMap<&'a str, Rc<RefCell<Directory<'a>>>>,
@@ -23,6 +23,7 @@ struct Directory<'a> {
 }
 
 impl<'a> File<'a> {
+    #[allow(dead_code)]
     fn name(&self) -> &str {
         self.name
     }
@@ -40,6 +41,8 @@ impl<'a> Directory<'a> {
             files: vec![],
         }
     }
+
+    #[allow(dead_code)]
     fn name(&self) -> &str {
         self.name
     }
