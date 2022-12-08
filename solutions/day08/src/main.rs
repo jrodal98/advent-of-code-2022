@@ -52,8 +52,8 @@ impl Grid {
         let num_columns = self.rows[0].len();
         let mut max_score = 0;
 
-        for i in 1..num_rows - 1 {
-            for j in 1..num_columns - 1 {
+        for i in 0..num_rows {
+            for j in 0..num_columns {
                 let score = self.tree_scenic_score(i, j) as u32;
                 if score > max_score {
                     max_score = score;
