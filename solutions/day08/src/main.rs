@@ -67,64 +67,33 @@ impl Grid {
     fn is_tree_visible(&self, i: usize, j: usize) -> bool {
         let tree = &self.rows[i][j];
 
-        self.is_tree_visible_left(tree, i, j)
-            || self.is_tree_visible_right(tree, i, j)
-            || self.is_tree_visible_up(tree, i, j)
-            || self.is_tree_visible_down(tree, i, j)
+        Self::is_tree_visible_one_direction(tree, &self.rows[i][..j])
+            || Self::is_tree_visible_one_direction(tree, &self.rows[i][j + 1..])
+            || Self::is_tree_visible_one_direction(tree, &self.cols[j][i + 1..])
+            || Self::is_tree_visible_one_direction(tree, &self.cols[j][..i])
     }
 
     fn is_tree_visible_one_direction(tree: &u8, other_trees: &[u8]) -> bool {
         other_trees.iter().all(|t| t < tree)
     }
 
-    fn is_tree_visible_left(&self, tree: &u8, i: usize, j: usize) -> bool {
-        Self::is_tree_visible_one_direction(tree, &self.rows[i][..j])
-    }
-
-    fn is_tree_visible_right(&self, tree: &u8, i: usize, j: usize) -> bool {
-        Self::is_tree_visible_one_direction(tree, &self.rows[i][j + 1..])
-    }
-
-    fn is_tree_visible_down(&self, tree: &u8, i: usize, j: usize) -> bool {
-        Self::is_tree_visible_one_direction(tree, &self.cols[j][i + 1..])
-    }
-    fn is_tree_visible_up(&self, tree: &u8, i: usize, j: usize) -> bool {
-        Self::is_tree_visible_one_direction(tree, &self.cols[j][..i])
-    }
-
     fn tree_scenic_score(&self, i: usize, j: usize) -> u32 {
         let tree = &self.rows[i][j];
-        self.scenic_score_left(tree, i, j)
-            * self.scenic_score_right(tree, i, j)
-            * self.scenic_score_down(tree, i, j)
-            * self.scenic_score_up(tree, i, j)
+        Self::scenic_score_one_direction(tree, &self.rows[i][..j], true)
+            * Self::scenic_score_one_direction(tree, &self.rows[i][j + 1..], false)
+            * Self::scenic_score_one_direction(tree, &self.cols[j][i + 1..], false)
+            * Self::scenic_score_one_direction(tree, &self.cols[j][..i], true)
     }
 
     fn scenic_score_one_direction(tree: &u8, other_trees: &[u8], rev: bool) -> u32 {
-        // if it's zero, add 1
-        // if it's less than the length, add 1
         let c = if rev {
             other_trees.iter().rev().take_while(|t| *t < tree).count()
         } else {
             other_trees.iter().take_while(|t| *t < tree).count()
         };
 
+        // At least the neighbor is visible, at most every tree is visible
         (c + 1).min(other_trees.len()) as u32
-    }
-
-    fn scenic_score_left(&self, tree: &u8, i: usize, j: usize) -> u32 {
-        Self::scenic_score_one_direction(tree, &self.rows[i][..j], true)
-    }
-
-    fn scenic_score_right(&self, tree: &u8, i: usize, j: usize) -> u32 {
-        Self::scenic_score_one_direction(tree, &self.rows[i][j + 1..], false)
-    }
-
-    fn scenic_score_down(&self, tree: &u8, i: usize, j: usize) -> u32 {
-        Self::scenic_score_one_direction(tree, &self.cols[j][i + 1..], false)
-    }
-    fn scenic_score_up(&self, tree: &u8, i: usize, j: usize) -> u32 {
-        Self::scenic_score_one_direction(tree, &self.cols[j][..i], true)
     }
 }
 
