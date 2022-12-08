@@ -116,26 +116,18 @@ impl Grid {
     }
 
     fn scenic_score_left(&self, tree: &u8, i: usize, j: usize) -> u32 {
-        let s = Self::scenic_score_one_direction(tree, &self.rows[i][..j], true);
-        println!("Left: {}", s);
-        s
+        Self::scenic_score_one_direction(tree, &self.rows[i][..j], true)
     }
 
     fn scenic_score_right(&self, tree: &u8, i: usize, j: usize) -> u32 {
-        let s = Self::scenic_score_one_direction(tree, &self.rows[i][j + 1..], false);
-        println!("Right: {}", s);
-        s
+        Self::scenic_score_one_direction(tree, &self.rows[i][j + 1..], false)
     }
 
     fn scenic_score_down(&self, tree: &u8, i: usize, j: usize) -> u32 {
-        let s = Self::scenic_score_one_direction(tree, &self.cols[j][i + 1..], false);
-        println!("Down: {}", s);
-        s
+        Self::scenic_score_one_direction(tree, &self.cols[j][i + 1..], false)
     }
     fn scenic_score_up(&self, tree: &u8, i: usize, j: usize) -> u32 {
-        let s = Self::scenic_score_one_direction(tree, &self.cols[j][..i], true);
-        println!("up: {}", s);
-        s
+        Self::scenic_score_one_direction(tree, &self.cols[j][..i], true)
     }
 }
 
