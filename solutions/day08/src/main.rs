@@ -1,45 +1,38 @@
+use std::ops::Add;
+
 fn main() {
     let input = include_str!("../data/input.txt");
     println!("Problem 1: {}", problem1(input));
     println!("Problem 2: {}", problem2(input));
 }
 
-struct Grid {
-    rows: Vec<Vec<u8>>,
-    // yes, this is memory inefficient
-    // no, I do not care
-    cols: Vec<Vec<u8>>,
+struct Grid<'a> {
+    rows: Vec<&'a [u8]>,
+    num_rows: usize,
+    num_cols: usize,
 }
 
-impl Grid {
-    fn new(input: &str) -> Self {
-        let num_cols = input.lines().next().unwrap().chars().count();
-        let mut cols: Vec<Vec<u8>> = vec![Vec::new(); num_cols];
+impl<'a> Grid<'a> {
+    fn new(input: &'a str) -> Self {
+        let rows: Vec<&[u8]> = input.lines().map(|line| line.as_bytes()).collect();
+        let num_rows = rows.len();
+        let num_cols = match rows.get(0) {
+            Some(r) => r.len(),
+            None => 0,
+        };
 
-        let rows: Vec<Vec<u8>> = input
-            .lines()
-            .map(|line| {
-                line.chars()
-                    .enumerate()
-                    .map(|(i, c)| {
-                        let val = c.to_digit(10).unwrap() as u8;
-                        cols[i].push(val);
-                        val
-                    })
-                    .collect()
-            })
-            .collect();
-
-        Self { rows, cols }
+        Self {
+            rows,
+            num_rows,
+            num_cols,
+        }
     }
 
     fn num_visible_trees(&self) -> u32 {
-        let num_rows = self.rows.len();
-        let num_columns = self.rows[0].len();
-        let mut num_visible_trees = (num_rows * 2 + num_columns * 2 - 4) as u32;
+        let mut num_visible_trees = (self.num_rows * 2 + self.num_cols * 2 - 4) as u32;
 
-        for i in 1..num_rows - 1 {
-            for j in 1..num_columns - 1 {
+        for i in 1..self.num_rows - 1 {
+            for j in 1..self.num_cols - 1 {
                 num_visible_trees += self.is_tree_visible(i, j) as u32;
             }
         }
@@ -65,35 +58,41 @@ impl Grid {
     }
 
     fn is_tree_visible(&self, i: usize, j: usize) -> bool {
-        let tree = &self.rows[i][j];
+        let tree = self.rows[i][j];
 
-        Self::is_tree_visible_one_direction(tree, &self.rows[i][..j])
-            || Self::is_tree_visible_one_direction(tree, &self.rows[i][j + 1..])
-            || Self::is_tree_visible_one_direction(tree, &self.cols[j][i + 1..])
-            || Self::is_tree_visible_one_direction(tree, &self.cols[j][..i])
-    }
-
-    fn is_tree_visible_one_direction(tree: &u8, other_trees: &[u8]) -> bool {
-        other_trees.iter().all(|t| t < tree)
+        (0..j).all(|v| self.rows[i][v] < tree)
+            || (j + 1..self.num_cols).all(|v| self.rows[i][v] < tree)
+            || (i + 1..self.num_rows).all(|v| self.rows[v][j] < tree)
+            || (0..i).all(|v| self.rows[v][j] < tree)
     }
 
     fn tree_scenic_score(&self, i: usize, j: usize) -> u32 {
-        let tree = &self.rows[i][j];
-        Self::scenic_score_one_direction(tree, &self.rows[i][..j], true)
-            * Self::scenic_score_one_direction(tree, &self.rows[i][j + 1..], false)
-            * Self::scenic_score_one_direction(tree, &self.cols[j][i + 1..], false)
-            * Self::scenic_score_one_direction(tree, &self.cols[j][..i], true)
-    }
+        let tree = self.rows[i][j];
 
-    fn scenic_score_one_direction(tree: &u8, other_trees: &[u8], rev: bool) -> u32 {
-        let c = if rev {
-            other_trees.iter().rev().take_while(|t| *t < tree).count()
-        } else {
-            other_trees.iter().take_while(|t| *t < tree).count()
-        };
+        let score = (0..j)
+            .rev()
+            .take_while(|&v| self.rows[i][v] < tree)
+            .count()
+            .add(1)
+            .min(j)
+            * (j + 1..self.num_cols)
+                .take_while(|&v| self.rows[i][v] < tree)
+                .count()
+                .add(1)
+                .min(self.num_cols - j - 1)
+            * (i + 1..self.num_rows)
+                .take_while(|&v| self.rows[v][j] < tree)
+                .count()
+                .add(1)
+                .min(self.num_rows - i - 1)
+            * (0..i)
+                .rev()
+                .take_while(|&v| self.rows[v][j] < tree)
+                .count()
+                .add(1)
+                .min(i);
 
-        // At least the neighbor is visible, at most every tree is visible
-        (c + 1).min(other_trees.len()) as u32
+        score as u32
     }
 }
 
