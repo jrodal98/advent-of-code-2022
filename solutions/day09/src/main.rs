@@ -9,7 +9,16 @@ fn main() {
     println!("Problem 2: {}", problem2(input));
 }
 
-#[derive(Debug)]
+fn sign(n: isize) -> isize {
+    if n < 0 {
+        -1
+    } else if n > 0 {
+        1
+    } else {
+        0
+    }
+}
+
 enum Direction {
     Up,
     Down,
@@ -31,7 +40,7 @@ impl FromStr for Direction {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash)]
 struct Coordinate {
     x: isize,
     y: isize,
@@ -52,21 +61,7 @@ impl Coordinate {
     }
 
     fn follow(&mut self, other: &Coordinate) {
-        let (mut dx, mut dy) = (other.x - self.x, other.y - self.y);
-        dx = if dx < 0 {
-            -1
-        } else if dx > 0 {
-            1
-        } else {
-            0
-        };
-        dy = if dy < 0 {
-            -1
-        } else if dy > 0 {
-            1
-        } else {
-            0
-        };
+        let (dx, dy) = (sign(other.x - self.x), sign(other.y - self.y));
         self.move_x_y(dx, dy);
     }
 
@@ -121,22 +116,21 @@ impl Simulation {
             self.move_once(&dir);
         }
     }
+
+    fn run(&mut self, input: &str) -> u32 {
+        input.lines().for_each(|line| {
+            self.simulate_movement(line);
+        });
+        self.tail_positions.len() as u32
+    }
 }
 
 fn problem1(input: &str) -> u32 {
-    let mut sim = Simulation::new(2);
-    input.lines().for_each(|line| {
-        sim.simulate_movement(line);
-    });
-    sim.tail_positions.len() as u32
+    Simulation::new(2).run(input)
 }
 
 fn problem2(input: &str) -> u32 {
-    let mut sim = Simulation::new(10);
-    input.lines().for_each(|line| {
-        sim.simulate_movement(line);
-    });
-    sim.tail_positions.len() as u32
+    Simulation::new(10).run(input)
 }
 
 #[test]
