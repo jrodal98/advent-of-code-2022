@@ -1,7 +1,9 @@
+const CRT_SCREEN_SIZE: usize = 240;
+
 fn main() {
     let input = include_str!("../data/input.txt");
     println!("Problem 1: {}", problem1(input));
-    println!("Problem 2: {}", problem2(input));
+    println!("Problem 2:\n{}", problem2(input));
 }
 
 enum Instruction {
@@ -24,26 +26,24 @@ impl FromStr for Instruction {
 
 struct Cpu {
     x: isize,
-    x_history: Vec<isize>,
-    image: Vec<char>,
-    pixel_to_draw: isize,
+    x_history: [isize; CRT_SCREEN_SIZE],
+    image: [char; CRT_SCREEN_SIZE],
+    pixel_to_draw: usize,
 }
 
 impl Cpu {
     fn new() -> Self {
         Self {
             x: 1,
-            x_history: vec![1],
-            image: vec![],
+            x_history: [1; CRT_SCREEN_SIZE],
+            image: ['.'; CRT_SCREEN_SIZE],
             pixel_to_draw: 0,
         }
     }
 
     fn draw_sprite(&mut self) {
-        if (self.x - 1..=self.x + 1).contains(&(self.pixel_to_draw % 40)) {
-            self.image.push('#')
-        } else {
-            self.image.push('.')
+        if (self.x - 1..=self.x + 1).contains(&(self.pixel_to_draw as isize % 40)) {
+            self.image[self.pixel_to_draw] = '#'
         }
         self.pixel_to_draw += 1;
     }
@@ -64,7 +64,7 @@ impl Cpu {
     }
 
     fn record_x(&mut self) {
-        self.x_history.push(self.x)
+        self.x_history[self.pixel_to_draw - 1] = self.x;
     }
 
     fn process_program(&mut self, input: &str) {
@@ -80,7 +80,7 @@ fn problem1(input: &str) -> isize {
     cpu.process_program(input);
     cpu.x_history
         .iter()
-        .skip(19)
+        .skip(18)
         .step_by(40)
         .enumerate()
         .map(|(i, x)| (i as isize * 40 + 20) * x)
@@ -91,7 +91,11 @@ fn problem2(input: &str) -> String {
     let mut cpu = Cpu::new();
     cpu.process_program(input);
 
-    cpu.image.iter().collect()
+    cpu.image
+        .chunks(40)
+        .map(|slice| slice.iter().collect::<String>())
+        .collect::<Vec<String>>()
+        .join("\n")
 }
 
 #[test]
@@ -104,7 +108,7 @@ fn test_problem1() {
 #[test]
 fn test_problem2() {
     let input = include_str!("../data/sample.txt");
-    let expected_res = include_str!("../data/part2_sample.txt").to_string();
+    let expected_res = include_str!("../data/part2_sample.txt").trim().to_string();
     let res = problem2(input);
     assert_eq!(res, expected_res);
 }
