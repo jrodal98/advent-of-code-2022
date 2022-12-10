@@ -25,6 +25,8 @@ impl FromStr for Instruction {
 struct Cpu {
     x: isize,
     x_history: Vec<isize>,
+    image: Vec<char>,
+    pixel_to_draw: isize,
 }
 
 impl Cpu {
@@ -32,13 +34,29 @@ impl Cpu {
         Self {
             x: 1,
             x_history: vec![1],
+            image: vec![],
+            pixel_to_draw: 0,
         }
+    }
+
+    fn draw_sprite(&mut self) {
+        if (self.x - 1..=self.x + 1).contains(&(self.pixel_to_draw % 40)) {
+            self.image.push('#')
+        } else {
+            self.image.push('.')
+        }
+        self.pixel_to_draw += 1;
     }
     fn process_instruction(&mut self, instruction: Instruction) {
         match instruction {
-            Instruction::NOOP => self.record_x(),
-            Instruction::ADDX(x) => {
+            Instruction::NOOP => {
+                self.draw_sprite();
                 self.record_x();
+            }
+            Instruction::ADDX(x) => {
+                self.draw_sprite();
+                self.record_x();
+                self.draw_sprite();
                 self.x += x;
                 self.record_x()
             }
@@ -48,15 +66,18 @@ impl Cpu {
     fn record_x(&mut self) {
         self.x_history.push(self.x)
     }
+
+    fn process_program(&mut self, input: &str) {
+        input
+            .lines()
+            .filter_map(|line| line.parse::<Instruction>().ok())
+            .for_each(|instruction| self.process_instruction(instruction));
+    }
 }
 
 fn problem1(input: &str) -> isize {
     let mut cpu = Cpu::new();
-    input
-        .lines()
-        .filter_map(|line| line.parse::<Instruction>().ok())
-        .for_each(|instruction| cpu.process_instruction(instruction));
-
+    cpu.process_program(input);
     cpu.x_history
         .iter()
         .skip(19)
@@ -66,8 +87,11 @@ fn problem1(input: &str) -> isize {
         .sum()
 }
 
-fn problem2(input: &str) -> isize {
-    unimplemented!()
+fn problem2(input: &str) -> String {
+    let mut cpu = Cpu::new();
+    cpu.process_program(input);
+
+    cpu.image.iter().collect()
 }
 
 #[test]
@@ -80,6 +104,7 @@ fn test_problem1() {
 #[test]
 fn test_problem2() {
     let input = include_str!("../data/sample.txt");
+    let expected_res = include_str!("../data/part2_sample.txt").to_string();
     let res = problem2(input);
-    assert_eq!(res, 0);
+    assert_eq!(res, expected_res);
 }
