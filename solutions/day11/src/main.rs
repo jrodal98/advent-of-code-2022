@@ -116,8 +116,7 @@ fn solve_problem(input: &str, rounds: u64, worried: bool) -> u64 {
     for (monkey_num, monkey_section) in monkey_sections.enumerate() {
         let mut lines = monkey_section.lines().skip(1);
 
-        let (_, items_str) = lines.next().unwrap().trim().split_at(16);
-        let items: Vec<u64> = items_str
+        let items: Vec<u64> = (&lines.next().unwrap().trim()[16..])
             .split(", ")
             .map(|item| item.parse::<u64>().unwrap())
             .collect();
