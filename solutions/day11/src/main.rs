@@ -1,6 +1,6 @@
 extern crate num;
 use num::Integer;
-use std::{cell::RefCell, rc::Rc, str::FromStr};
+use std::{cell::RefCell, str::FromStr};
 
 fn main() {
     let input = include_str!("../data/input.txt");
@@ -8,7 +8,6 @@ fn main() {
     println!("Problem 2: {}", problem2(input));
 }
 
-#[derive(Debug)]
 enum Operation {
     Add(Option<u64>),
     Multiply(Option<u64>),
@@ -56,23 +55,23 @@ impl FromStr for Operation {
 }
 
 #[derive(Default)]
-struct Monkey {
+struct Monkey<'a> {
     items: Vec<u64>,
     operation: Option<Operation>,
     test: u64,
-    true_monkey: Option<Rc<RefCell<Monkey>>>,
-    false_monkey: Option<Rc<RefCell<Monkey>>>,
+    true_monkey: Option<&'a RefCell<Monkey<'a>>>,
+    false_monkey: Option<&'a RefCell<Monkey<'a>>>,
     num_inspections: usize,
 }
 
-impl Monkey {
+impl<'a> Monkey<'a> {
     fn update(
         &mut self,
         items: Vec<u64>,
         operation: Operation,
         test: u64,
-        true_monkey: Rc<RefCell<Monkey>>,
-        false_monkey: Rc<RefCell<Monkey>>,
+        true_monkey: &'a RefCell<Monkey<'a>>,
+        false_monkey: &'a RefCell<Monkey<'a>>,
     ) {
         self.items = items;
         self.operation = Some(operation);
@@ -110,11 +109,10 @@ fn extract_last_number(line: &str) -> u64 {
 
 fn solve_problem(input: &str, rounds: u64, worried: bool) -> u64 {
     let monkey_sections = input.split("\n\n");
-    let monkeys: Vec<Rc<RefCell<Monkey>>> = (0..monkey_sections.clone().count())
-        .map(|_| Rc::new(RefCell::new(Monkey::default())))
+    let monkeys: Vec<RefCell<Monkey>> = (0..monkey_sections.clone().count())
+        .map(|_| RefCell::new(Monkey::default()))
         .collect();
 
-    // let mut monkeys =
     for (monkey_num, monkey_section) in monkey_sections.enumerate() {
         let mut lines = monkey_section.lines().skip(1);
 
@@ -160,7 +158,7 @@ fn solve_problem(input: &str, rounds: u64, worried: bool) -> u64 {
     }
 
     let mut monkey_inspections: Vec<usize> = monkeys
-        .into_iter()
+        .iter()
         .map(|monkey| monkey.borrow().num_inspections)
         .collect();
 
