@@ -6,7 +6,6 @@ fn main() {
     println!("Problem 2: {}", problem2(input));
 }
 
-#[derive(Debug)]
 struct Coordinate {
     x: usize,
     y: usize,
@@ -61,7 +60,6 @@ impl Grid {
     fn drop_sand_block(&mut self) -> bool {
         let (mut i, mut j) = self.sand_generator;
 
-        // not covering edge grid cases in the while loop
         while i < self.num_rows - 1 && j > 0 && j < self.num_cols - 1 {
             i = i + 1;
             let down_block = &self.rows[i][j];
@@ -138,14 +136,12 @@ impl Coordinate {
 }
 
 fn drop_sand(mut grid: Grid) -> u32 {
-    let mut num_falls = 0;
-    loop {
-        if grid.drop_sand_block() {
-            num_falls += 1;
-        } else {
-            return num_falls;
+    for ans in 0.. {
+        if !grid.drop_sand_block() {
+            return ans;
         }
     }
+    unreachable!()
 }
 
 fn create_grid(input: &str, add_infinite_bottom: bool) -> Grid {
