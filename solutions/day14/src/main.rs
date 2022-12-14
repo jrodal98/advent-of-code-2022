@@ -137,58 +137,18 @@ impl Coordinate {
     }
 }
 
-// to draw grid:
-// Find lowest x and y
-// "normalize" everything relative to those so I can use normal indexing
-
-fn problem1(input: &str) -> u32 {
-    // get coordinates, normalize them, and then use window to create lines
-    let coordinates: Vec<Vec<Coordinate>> = input
-        .lines()
-        .map(|line| {
-            line.split(" -> ")
-                .map(|coord| coord.parse().unwrap())
-                .collect::<Vec<_>>()
-        })
-        .collect();
-
-    let min_x = coordinates.iter().flatten().map(|c| c.x).min().unwrap();
-    let max_x = coordinates.iter().flatten().map(|c| c.x).max().unwrap();
-    let max_y = coordinates.iter().flatten().map(|c| c.y).max().unwrap();
-
-    let sand_generator_coordinate = Coordinate {
-        x: 500 - min_x,
-        y: 0,
-    };
-    let rock_coordinates: Vec<Coordinate> = coordinates
-        .into_iter()
-        .flat_map(|v| {
-            v.windows(2)
-                .flat_map(|w| w[0].gen_coordinates(&w[1], min_x))
-                .collect::<Vec<Coordinate>>()
-        })
-        .collect();
-
-    let mut grid = Grid::new(
-        rock_coordinates,
-        sand_generator_coordinate,
-        max_y + 1,
-        max_x - min_x + 1,
-    );
-
+fn drop_sand(mut grid: Grid) -> u32 {
     let mut num_falls = 0;
     loop {
         if grid.drop_sand_block() {
             num_falls += 1;
         } else {
-            break;
+            return num_falls;
         }
     }
-    println!("{}", &grid);
-    num_falls
 }
 
-fn problem2(input: &str) -> u32 {
+fn create_grid(input: &str, add_infinite_bottom: bool) -> Grid {
     // get coordinates, normalize them, and then use window to create lines
     let coordinates: Vec<Vec<Coordinate>> = input
         .lines()
@@ -199,10 +159,18 @@ fn problem2(input: &str) -> u32 {
         })
         .collect();
 
-    let max_y = coordinates.iter().flatten().map(|c| c.y).max().unwrap() + 2;
-    let min_x = 0;
-    // create "infinite" horizontal line
-    let max_x = coordinates.iter().flatten().map(|c| c.x).max().unwrap() + max_y;
+    let (min_x, max_x, max_y) = if add_infinite_bottom {
+        let max_y = coordinates.iter().flatten().map(|c| c.y).max().unwrap() + 2;
+        let min_x = 0;
+        // create "infinite" horizontal line
+        let max_x = coordinates.iter().flatten().map(|c| c.x).max().unwrap() + max_y;
+        (min_x, max_x, max_y)
+    } else {
+        let min_x = coordinates.iter().flatten().map(|c| c.x).min().unwrap();
+        let max_x = coordinates.iter().flatten().map(|c| c.x).max().unwrap();
+        let max_y = coordinates.iter().flatten().map(|c| c.y).max().unwrap();
+        (min_x, max_x, max_y)
+    };
 
     let sand_generator_coordinate = Coordinate {
         x: 500 - min_x,
@@ -217,28 +185,29 @@ fn problem2(input: &str) -> u32 {
         })
         .collect();
 
-    rock_coordinates.append(
-        &mut Coordinate { x: min_x, y: max_y }
-            .gen_coordinates(&Coordinate { x: max_x, y: max_y }, min_x),
-    );
+    if add_infinite_bottom {
+        rock_coordinates.append(
+            &mut Coordinate { x: min_x, y: max_y }
+                .gen_coordinates(&Coordinate { x: max_x, y: max_y }, min_x),
+        );
+    }
 
-    let mut grid = Grid::new(
+    Grid::new(
         rock_coordinates,
         sand_generator_coordinate,
         max_y + 1,
         max_x - min_x + 1,
-    );
+    )
+}
 
-    let mut num_falls = 1;
-    loop {
-        if grid.drop_sand_block() {
-            num_falls += 1;
-        } else {
-            break;
-        }
-    }
-    println!("{}", &grid);
-    num_falls
+fn problem1(input: &str) -> u32 {
+    let grid = create_grid(input, false);
+    drop_sand(grid)
+}
+
+fn problem2(input: &str) -> u32 {
+    let grid = create_grid(input, true);
+    drop_sand(grid) + 1
 }
 
 #[test]
