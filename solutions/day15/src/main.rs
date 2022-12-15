@@ -1,73 +1,13 @@
-use std::str::FromStr;
+use entities::{Coordinate, Sensor};
 
-const MAX_XY: isize = 4000000;
+use crate::entities::MAX_XY;
+
+pub mod entities;
 
 fn main() {
     let input = include_str!("../data/input.txt");
     println!("Problem 1: {}", problem1(input, 2_000_000));
     println!("Problem 2: {}", problem2(input, MAX_XY));
-}
-
-#[derive(Debug)]
-struct Sensor {
-    position: Coordinate,
-    beacon: Coordinate,
-    distance_to_beacon: usize,
-}
-
-impl FromStr for Sensor {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        // skip sensor,at
-        let mut split_str = s.split_whitespace().skip(2);
-        let x_str = split_str.next().unwrap();
-        // exclude x= and ,
-        let x = x_str[2..x_str.len() - 1].parse::<isize>().unwrap();
-
-        let y_str = split_str.next().unwrap();
-        // exclude y= and :
-        let y = y_str[2..y_str.len() - 1].parse::<isize>().unwrap();
-
-        let position = Coordinate { x, y };
-
-        // skip closest,beacon,is,at
-        let mut split_str = split_str.skip(4);
-
-        let x_str = split_str.next().unwrap();
-        // exclude x= and ,
-        let x = x_str[2..x_str.len() - 1].parse::<isize>().unwrap();
-
-        let y_str = split_str.next().unwrap();
-        // exclude y=
-        let y = y_str[2..].parse::<isize>().unwrap();
-
-        let beacon = Coordinate { x, y };
-
-        let distance_to_beacon = position.manhattan_distance(&beacon);
-
-        Ok(Self {
-            position,
-            beacon,
-            distance_to_beacon,
-        })
-    }
-}
-
-#[derive(Hash, Debug, PartialEq, Eq)]
-struct Coordinate {
-    x: isize,
-    y: isize,
-}
-
-impl Coordinate {
-    fn manhattan_distance(&self, other: &Self) -> usize {
-        self.x.abs_diff(other.x) + self.y.abs_diff(other.y)
-    }
-
-    fn tuning_distance(&self) -> usize {
-        (self.x * MAX_XY + self.y) as usize
-    }
 }
 
 fn get_sensors(input: &str) -> Vec<Sensor> {
@@ -99,7 +39,6 @@ fn problem1(input: &str, y: isize) -> usize {
 // another beacon must already be between those -
 // otherwise, it would contradict the uniqueness claim
 fn problem2(input: &str, max_xy: isize) -> usize {
-    // too low: 320708895
     let sensors = get_sensors(input);
     sensors
         .iter()
