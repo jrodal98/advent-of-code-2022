@@ -59,7 +59,7 @@ fn part1_optimal_pressure(
     time_remaining: u32,
     // use vec instead of set so I can hash it
     mut opened_valves: Vec<String>,
-    cache: &mut HashMap<(String, u32, Vec<String>), u32>,
+    cache: &mut LruCache<(String, u32, Vec<String>), u32>,
 ) -> u32 {
     if time_remaining <= 1 {
         return 0;
@@ -72,10 +72,10 @@ fn part1_optimal_pressure(
         return *cached_result;
     }
 
-    let mut paths: Vec<u32> = Vec::new();
+    let mut greatest_potential = 0;
     // do not open valve
     for neighbor in current.neighbors.iter() {
-        paths.push(part1_optimal_pressure(
+        greatest_potential = greatest_potential.max(part1_optimal_pressure(
             neighbor.clone(),
             time_remaining - 1,
             opened_valves.clone(),
@@ -87,14 +87,20 @@ fn part1_optimal_pressure(
     let flow = (time_remaining - 1) * current.flow_rate;
     if flow > 0 && !opened_valves.contains(&current.name) {
         opened_valves.push(current.name.clone());
-        paths.push(
-            flow + part1_optimal_pressure(valve.clone(), time_remaining - 1, opened_valves, cache),
-        );
+        for neighbor in current.neighbors.iter() {
+            greatest_potential = greatest_potential.max(
+                flow + part1_optimal_pressure(
+                    neighbor.clone(),
+                    time_remaining - 2,
+                    opened_valves.clone(),
+                    cache,
+                ),
+            );
+        }
     }
 
-    let res = paths.into_iter().max().unwrap();
-    cache.insert(cache_key, res);
-    res
+    cache.put(cache_key, greatest_potential);
+    greatest_potential
 }
 
 fn part2_optimal_pressure(
@@ -103,8 +109,8 @@ fn part2_optimal_pressure(
     time_remaining: u32,
     // use vec instead of set so I can hash it
     mut opened_valves: Vec<String>,
-    cache: &mut HashMap<(String, u32, Vec<String>), u32>,
-    part1_cache: &mut HashMap<(String, u32, Vec<String>), u32>,
+    cache: &mut LruCache<(String, u32, Vec<String>), u32>,
+    part1_cache: &mut LruCache<(String, u32, Vec<String>), u32>,
 ) -> u32 {
     if time_remaining <= 1 {
         return part1_optimal_pressure(aa_valve.clone(), PART2_TIME, opened_valves, part1_cache);
@@ -117,10 +123,10 @@ fn part2_optimal_pressure(
         return *cached_result;
     }
 
-    let mut paths: Vec<u32> = Vec::new();
+    let mut greatest_potential = 0;
     // do not open valve
     for neighbor in current.neighbors.iter() {
-        paths.push(part2_optimal_pressure(
+        greatest_potential = greatest_potential.max(part2_optimal_pressure(
             aa_valve.clone(),
             neighbor.clone(),
             time_remaining - 1,
@@ -134,26 +140,33 @@ fn part2_optimal_pressure(
     let flow = (time_remaining - 1) * current.flow_rate;
     if flow > 0 && !opened_valves.contains(&current.name) {
         opened_valves.push(current.name.clone());
-        paths.push(
-            flow + part2_optimal_pressure(
-                aa_valve.clone(),
-                valve.clone(),
-                time_remaining - 1,
-                opened_valves,
-                cache,
-                part1_cache,
-            ),
-        );
+
+        for neighbor in current.neighbors.iter() {
+            greatest_potential = greatest_potential.max(
+                flow + part2_optimal_pressure(
+                    aa_valve.clone(),
+                    neighbor.clone(),
+                    time_remaining - 2,
+                    opened_valves.clone(),
+                    cache,
+                    part1_cache,
+                ),
+            );
+        }
     }
 
-    let res = paths.into_iter().max().unwrap();
-    cache.insert(cache_key, res);
-    res
+    cache.put(cache_key, greatest_potential);
+    greatest_potential
 }
 
 fn problem1(input: &str) -> u32 {
     let start_valve = Valve::from_input(input);
-    part1_optimal_pressure(start_valve, PART1_TIME, Vec::new(), &mut HashMap::new())
+    part1_optimal_pressure(
+        start_valve,
+        PART1_TIME,
+        Vec::new(),
+        &mut LruCache::new(NonZeroUsize::new(31_000_000).unwrap()),
+    )
 }
 
 fn problem2(input: &str) -> u32 {
@@ -163,8 +176,8 @@ fn problem2(input: &str) -> u32 {
         start_valve.clone(),
         PART2_TIME,
         Vec::new(),
-        &mut HashMap::new(),
-        &mut HashMap::new(),
+        &mut LruCache::new(NonZeroUsize::new(20_000_000).unwrap()),
+        &mut LruCache::new(NonZeroUsize::new(11_000_000).unwrap()),
     )
 }
 
