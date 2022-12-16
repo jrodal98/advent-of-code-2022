@@ -1,7 +1,7 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-const PART1_TIME: u16 = 30;
-const PART2_TIME: u16 = 26;
+const PART1_TIME: u8 = 30;
+const PART2_TIME: u8 = 26;
 
 fn main() {
     let input = include_str!("../data/input.txt");
@@ -58,10 +58,10 @@ impl<'a> Valve<'a> {
 fn part1_optimal_pressure<'a>(
     valve: Rc<RefCell<Valve<'a>>>,
     total_valves: usize,
-    time_remaining: u16,
+    time_remaining: u8,
     // use vec instead of set so I can hash it
     mut opened_valves: Vec<&'a str>,
-    cache: &mut HashMap<(&'a str, u16, Vec<&'a str>), u16>,
+    cache: &mut HashMap<(&'a str, u8, Vec<&'a str>), u16>,
 ) -> u16 {
     if opened_valves.len() == total_valves {
         return 0;
@@ -90,7 +90,7 @@ fn part1_optimal_pressure<'a>(
     }
 
     // open valve
-    let flow = (time_remaining - 1) * current.flow_rate;
+    let flow = (time_remaining - 1) as u16 * current.flow_rate;
     if flow > 0 && !opened_valves.contains(&current.name) {
         opened_valves.push(current.name);
         for neighbor in current.neighbors.iter() {
@@ -114,11 +114,11 @@ fn part2_optimal_pressure<'a>(
     aa_valve: Rc<RefCell<Valve<'a>>>,
     valve: Rc<RefCell<Valve<'a>>>,
     total_valves: usize,
-    time_remaining: u16,
+    time_remaining: u8,
     // use vec instead of set so I can hash it
     mut opened_valves: Vec<&'a str>,
-    cache: &mut HashMap<(&'a str, u16, Vec<&'a str>), u16>,
-    part1_cache: &mut HashMap<(&'a str, u16, Vec<&'a str>), u16>,
+    cache: &mut HashMap<(&'a str, u8, Vec<&'a str>), u16>,
+    part1_cache: &mut HashMap<(&'a str, u8, Vec<&'a str>), u16>,
 ) -> u16 {
     if opened_valves.len() == total_valves {
         return 0;
@@ -158,7 +158,7 @@ fn part2_optimal_pressure<'a>(
     }
 
     // open valve
-    let flow = (time_remaining - 1) * current.flow_rate;
+    let flow = (time_remaining - 1) as u16 * current.flow_rate;
     if flow > 0 && !opened_valves.contains(&current.name) {
         opened_valves.push(current.name);
 
