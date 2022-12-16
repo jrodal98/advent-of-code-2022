@@ -1,6 +1,4 @@
-use std::{cell::RefCell, collections::HashMap, hash::Hash, num::NonZeroUsize, rc::Rc};
-
-use lru::LruCache;
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
 const PART1_TIME: u16 = 30;
 const PART2_TIME: u16 = 26;
