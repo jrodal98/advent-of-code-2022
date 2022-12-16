@@ -1,6 +1,7 @@
 use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-const STARTING_TIME: u32 = 30;
+const PART1_TIME: u32 = 30;
+const PART2_TIME: u32 = 26;
 
 fn main() {
     let input = include_str!("../data/input.txt");
@@ -51,7 +52,7 @@ impl Valve {
     }
 }
 
-fn find_optimal_pressure(
+fn part1_optimal_pressure(
     valve: Rc<RefCell<Valve>>,
     time_remaining: u32,
     // use vec instead of set so I can hash it
@@ -72,7 +73,7 @@ fn find_optimal_pressure(
     let mut paths: Vec<u32> = Vec::new();
     // do not open valve
     for neighbor in current.neighbors.iter() {
-        paths.push(find_optimal_pressure(
+        paths.push(part1_optimal_pressure(
             neighbor.clone(),
             time_remaining - 1,
             opened_valves.clone(),
@@ -87,7 +88,7 @@ fn find_optimal_pressure(
 
         for neighbor in current.neighbors.iter() {
             paths.push(
-                flow + find_optimal_pressure(
+                flow + part1_optimal_pressure(
                     neighbor.clone(),
                     time_remaining - 2,
                     opened_valves.clone(),
@@ -102,13 +103,128 @@ fn find_optimal_pressure(
     res
 }
 
+fn part2_optimal_pressure(
+    my_valve: Rc<RefCell<Valve>>,
+    elephant_valve: Rc<RefCell<Valve>>,
+    time_remaining: u32,
+    // use vec instead of set so I can hash it
+    mut opened_valves: Vec<String>,
+    cache: &mut HashMap<(String, String, u32, Vec<String>), u32>,
+) -> u32 {
+    if time_remaining <= 1 {
+        return 0;
+    }
+
+    let my_current = my_valve.borrow();
+    let elephant_current = elephant_valve.borrow();
+
+    let cache_key = (
+        my_current.name.clone(),
+        elephant_current.name.clone(),
+        time_remaining,
+        opened_valves.clone(),
+    );
+    if let Some(cached_result) = cache.get(&cache_key) {
+        return *cached_result;
+    }
+
+    let mut paths: Vec<u32> = Vec::new();
+
+    // we both move
+    for my_neighbor in my_current.neighbors.iter() {
+        for elephant_neighbor in elephant_current.neighbors.iter() {
+            paths.push(part2_optimal_pressure(
+                my_neighbor.clone(),
+                elephant_neighbor.clone(),
+                time_remaining - 1,
+                opened_valves.clone(),
+                cache,
+            ));
+        }
+    }
+
+    // I move, elephant opens valve
+    let elephant_flow = (time_remaining - 1) * elephant_current.flow_rate;
+    if elephant_flow > 0 && !opened_valves.contains(&elephant_current.name) {
+        let mut opened_valves_with_elephant = opened_valves.clone();
+        opened_valves_with_elephant.push(elephant_current.name.clone());
+
+        for my_neighbor in my_current.neighbors.iter() {
+            paths.push(
+                elephant_flow
+                    + part2_optimal_pressure(
+                        my_neighbor.clone(),
+                        elephant_valve.clone(),
+                        time_remaining - 1,
+                        opened_valves_with_elephant.clone(),
+                        cache,
+                    ),
+            );
+        }
+    }
+
+    // elephant moves, I open valve
+    let my_flow = (time_remaining - 1) * my_current.flow_rate;
+    if my_flow > 0 && !opened_valves.contains(&my_current.name) {
+        let mut opened_valves_with_me = opened_valves.clone();
+        opened_valves_with_me.push(my_current.name.clone());
+
+        for elephant_neighbor in elephant_current.neighbors.iter() {
+            paths.push(
+                my_flow
+                    + part2_optimal_pressure(
+                        my_valve.clone(),
+                        elephant_neighbor.clone(),
+                        time_remaining - 1,
+                        opened_valves_with_me.clone(),
+                        cache,
+                    ),
+            );
+        }
+    }
+
+    // we both open valve
+    if my_flow > 0
+        && elephant_flow > 0
+        && my_current.name != elephant_current.name
+        && !opened_valves.contains(&my_current.name)
+        && !opened_valves.contains(&elephant_current.name)
+    {
+        opened_valves.push(my_current.name.clone());
+        opened_valves.push(elephant_current.name.clone());
+
+        paths.push(
+            my_flow
+                + elephant_flow
+                + part2_optimal_pressure(
+                    my_valve.clone(),
+                    elephant_valve.clone(),
+                    time_remaining - 1,
+                    opened_valves,
+                    cache,
+                ),
+        );
+    }
+
+    let res = paths.into_iter().max().unwrap();
+    cache.insert(cache_key, res);
+    res
+}
+
 fn problem1(input: &str) -> u32 {
     let start_valve = Valve::from_input(input);
-    find_optimal_pressure(start_valve, STARTING_TIME, Vec::new(), &mut HashMap::new())
+    part1_optimal_pressure(start_valve, PART1_TIME, Vec::new(), &mut HashMap::new())
 }
 
 fn problem2(input: &str) -> u32 {
-    unimplemented!()
+    let start_valve = Valve::from_input(input);
+    part2_optimal_pressure(
+        start_valve.clone(),
+        start_valve.clone(),
+        PART2_TIME,
+        Vec::new(),
+        &mut HashMap::new(),
+    )
 }
 
 #[test]
@@ -122,5 +238,5 @@ fn test_problem1() {
 fn test_problem2() {
     let input = include_str!("../data/sample.txt");
     let res = problem2(input);
-    assert_eq!(res, 0);
+    assert_eq!(res, 1707);
 }
