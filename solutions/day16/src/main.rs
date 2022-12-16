@@ -1,4 +1,6 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, num::NonZeroUsize, rc::Rc};
+
+use lru::LruCache;
 
 const PART1_TIME: u32 = 30;
 const PART2_TIME: u32 = 26;
@@ -101,7 +103,7 @@ fn part2_optimal_pressure(
     time_remaining: u32,
     // use vec instead of set so I can hash it
     mut opened_valves: Vec<String>,
-    cache: &mut HashMap<(String, String, u32, Vec<String>), u32>,
+    cache: &mut LruCache<(String, String, u32, Vec<String>), u32>,
 ) -> u32 {
     if time_remaining <= 1 {
         return 0;
@@ -199,7 +201,7 @@ fn part2_optimal_pressure(
     }
 
     let res = paths.into_iter().max().unwrap();
-    cache.insert(cache_key, res);
+    cache.put(cache_key, res);
     res
 }
 
@@ -215,7 +217,7 @@ fn problem2(input: &str) -> u32 {
         start_valve.clone(),
         PART2_TIME,
         Vec::new(),
-        &mut HashMap::new(),
+        &mut LruCache::new(NonZeroUsize::new(100_000_000).unwrap()),
     )
 }
 
