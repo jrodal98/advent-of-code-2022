@@ -85,17 +85,9 @@ fn part1_optimal_pressure(
     let flow = (time_remaining - 1) * current.flow_rate;
     if flow > 0 && !opened_valves.contains(&current.name) {
         opened_valves.push(current.name.clone());
-
-        for neighbor in current.neighbors.iter() {
-            paths.push(
-                flow + part1_optimal_pressure(
-                    neighbor.clone(),
-                    time_remaining - 2,
-                    opened_valves.clone(),
-                    cache,
-                ),
-            );
-        }
+        paths.push(
+            flow + part1_optimal_pressure(valve.clone(), time_remaining - 1, opened_valves, cache),
+        );
     }
 
     let res = paths.into_iter().max().unwrap();
