@@ -9,16 +9,16 @@ fn main() {
     println!("Problem 2: {}", problem2(input));
 }
 
-struct Valve {
-    name: String,
+struct Valve<'a> {
+    name: &'a str,
     flow_rate: u16,
-    neighbors: Vec<Rc<RefCell<Valve>>>,
+    neighbors: Vec<Rc<RefCell<Valve<'a>>>>,
 }
 
-impl Valve {
-    fn from_name(name: &str) -> Self {
+impl<'a> Valve<'a> {
+    fn from_name(name: &'a str) -> Self {
         Self {
-            name: name.to_string(),
+            name,
             flow_rate: 0,
             neighbors: Vec::new(),
         }
@@ -55,13 +55,13 @@ impl Valve {
     }
 }
 
-fn part1_optimal_pressure(
-    valve: Rc<RefCell<Valve>>,
+fn part1_optimal_pressure<'a>(
+    valve: Rc<RefCell<Valve<'a>>>,
     total_valves: usize,
     time_remaining: u16,
     // use vec instead of set so I can hash it
-    mut opened_valves: Vec<String>,
-    cache: &mut HashMap<(String, u16, Vec<String>), u16>,
+    mut opened_valves: Vec<&'a str>,
+    cache: &mut HashMap<(&'a str, u16, Vec<&'a str>), u16>,
 ) -> u16 {
     if opened_valves.len() == total_valves {
         return 0;
@@ -72,7 +72,7 @@ fn part1_optimal_pressure(
 
     let current = valve.borrow();
 
-    let cache_key = (current.name.clone(), time_remaining, opened_valves.clone());
+    let cache_key = (current.name, time_remaining, opened_valves.clone());
     if let Some(cached_result) = cache.get(&cache_key) {
         return *cached_result;
     }
@@ -92,7 +92,7 @@ fn part1_optimal_pressure(
     // open valve
     let flow = (time_remaining - 1) * current.flow_rate;
     if flow > 0 && !opened_valves.contains(&current.name) {
-        opened_valves.push(current.name.clone());
+        opened_valves.push(current.name);
         for neighbor in current.neighbors.iter() {
             greatest_potential = greatest_potential.max(
                 flow + part1_optimal_pressure(
@@ -110,15 +110,15 @@ fn part1_optimal_pressure(
     greatest_potential
 }
 
-fn part2_optimal_pressure(
-    aa_valve: Rc<RefCell<Valve>>,
-    valve: Rc<RefCell<Valve>>,
+fn part2_optimal_pressure<'a>(
+    aa_valve: Rc<RefCell<Valve<'a>>>,
+    valve: Rc<RefCell<Valve<'a>>>,
     total_valves: usize,
     time_remaining: u16,
     // use vec instead of set so I can hash it
-    mut opened_valves: Vec<String>,
-    cache: &mut HashMap<(String, u16, Vec<String>), u16>,
-    part1_cache: &mut HashMap<(String, u16, Vec<String>), u16>,
+    mut opened_valves: Vec<&'a str>,
+    cache: &mut HashMap<(&'a str, u16, Vec<&'a str>), u16>,
+    part1_cache: &mut HashMap<(&'a str, u16, Vec<&'a str>), u16>,
 ) -> u16 {
     if opened_valves.len() == total_valves {
         return 0;
@@ -126,7 +126,7 @@ fn part2_optimal_pressure(
 
     let current = valve.borrow();
 
-    let cache_key = (current.name.clone(), time_remaining, opened_valves.clone());
+    let cache_key = (current.name, time_remaining, opened_valves.clone());
     if let Some(cached_result) = cache.get(&cache_key) {
         return *cached_result;
     }
@@ -160,7 +160,7 @@ fn part2_optimal_pressure(
     // open valve
     let flow = (time_remaining - 1) * current.flow_rate;
     if flow > 0 && !opened_valves.contains(&current.name) {
-        opened_valves.push(current.name.clone());
+        opened_valves.push(current.name);
 
         for neighbor in current.neighbors.iter() {
             greatest_potential = greatest_potential.max(
