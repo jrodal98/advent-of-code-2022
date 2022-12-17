@@ -93,6 +93,7 @@ fn part1_optimal_pressure<'a>(
     let flow = (time_remaining - 1) as u16 * current.flow_rate;
     if flow > 0 && !opened_valves.contains(&current.name) {
         opened_valves.push(current.name);
+        opened_valves.sort();
         for neighbor in current.neighbors.iter() {
             greatest_potential = greatest_potential.max(
                 flow + part1_optimal_pressure(
@@ -161,6 +162,7 @@ fn part2_optimal_pressure<'a>(
     let flow = (time_remaining - 1) as u16 * current.flow_rate;
     if flow > 0 && !opened_valves.contains(&current.name) {
         opened_valves.push(current.name);
+        opened_valves.sort();
 
         for neighbor in current.neighbors.iter() {
             greatest_potential = greatest_potential.max(
