@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 fn main() {
     let input = include_str!("../data/input.txt");
     println!("Problem 1: {}", problem1(input));
@@ -43,11 +45,16 @@ impl Grid {
 
     fn sa_including_air_pockets(&self) -> usize {
         self.coordinates.len() * 6
-            - self
+            - 2 * self
                 .coordinates
                 .iter()
-                .map(|c| self.coordinates.iter().filter(|o| c.adjacent(o)).count())
-                .sum::<usize>()
+                .tuple_combinations()
+                .filter(|(c1, c2)| c1.adjacent(c2))
+                .count()
+    }
+
+    fn is_air_pocket(coordinates: &Vec<&Coordinate>) -> bool {
+        false
     }
 
     fn num_air_pockets(&self) -> usize {
