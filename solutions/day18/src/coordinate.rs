@@ -1,9 +1,24 @@
-#[derive(Debug, Hash, PartialEq, Eq, sscanf::FromScanf)]
-#[sscanf(format = "{x},{y},{z}")]
+use std::{num::ParseIntError, str::FromStr};
+
+#[derive(Debug, Hash, PartialEq, Eq)]
 pub struct Coordinate {
     pub x: i8,
     pub y: i8,
     pub z: i8,
+}
+
+impl FromStr for Coordinate {
+    type Err = ParseIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let (x, yz) = s.split_once(",").unwrap();
+        let (y, z) = yz.split_once(",").unwrap();
+        Ok(Coordinate {
+            x: x.parse()?,
+            y: y.parse()?,
+            z: z.parse()?,
+        })
+    }
 }
 
 impl Coordinate {

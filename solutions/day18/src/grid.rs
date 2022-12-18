@@ -8,10 +8,8 @@ pub struct Grid {
 
 impl Grid {
     pub fn new(input: &str) -> Self {
-        let coordinates: HashSet<Coordinate> = input
-            .lines()
-            .map(|line| sscanf::sscanf!(line, "{Coordinate}").unwrap())
-            .collect();
+        let coordinates: HashSet<Coordinate> =
+            input.lines().map(|line| line.parse().unwrap()).collect();
         Self { coordinates }
     }
 
