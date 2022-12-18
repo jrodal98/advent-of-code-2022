@@ -15,8 +15,8 @@ impl Coordinate {
         }
     }
 
-    pub fn adjacent_coordinates(&self) -> Vec<Self> {
-        vec![
+    pub fn adjacent_coordinates(&self) -> [Coordinate; 6] {
+        [
             self.translate_new(1, 0, 0),
             self.translate_new(-1, 0, 0),
             self.translate_new(0, 1, 0),
