@@ -80,7 +80,6 @@ impl Chamber {
     }
 
     fn move_rock(&mut self, dx: isize, dy: isize) -> bool {
-        // dbg!((dx, dy), &self.rock.coordinates);
         let new_coords: HashSet<Coordinate> = self
             .rock
             .coordinates
