@@ -186,7 +186,7 @@ impl Chamber {
 fn problem1(input: &str) -> usize {
     let mut chamber = Chamber::new();
     let mut dir_iter = input.trim_end().chars().cycle();
-    for r in 0..2022 {
+    for r in 0..10 {
         dbg!(r);
         chamber.start_dropping_rock(r);
         loop {
