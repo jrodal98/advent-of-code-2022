@@ -27,12 +27,11 @@ impl Grid {
     }
 
     fn area(coordinates: &HashSet<Coordinate>) -> usize {
-        coordinates.len() * 6
-            - coordinates
-                .iter()
-                .flat_map(|c| c.adjacent_coordinates())
-                .filter(|c| coordinates.contains(c))
-                .count()
+        coordinates
+            .iter()
+            .flat_map(|c| c.adjacent_coordinates())
+            .filter(|c| !coordinates.contains(c))
+            .count()
     }
 
     fn get_air_pockets(&self) -> HashSet<Coordinate> {
