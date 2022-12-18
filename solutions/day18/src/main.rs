@@ -9,13 +9,13 @@ fn main() {
 #[derive(Debug, Hash, PartialEq, Eq, sscanf::FromScanf)]
 #[sscanf(format = "{x},{y},{z}")]
 struct Coordinate {
-    x: isize,
-    y: isize,
-    z: isize,
+    x: i8,
+    y: i8,
+    z: i8,
 }
 
 impl Coordinate {
-    fn translate_new(&self, dx: isize, dy: isize, dz: isize) -> Self {
+    fn translate_new(&self, dx: i8, dy: i8, dz: i8) -> Self {
         Coordinate {
             x: self.x + dx,
             y: self.y + dy,
