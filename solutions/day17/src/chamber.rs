@@ -4,6 +4,9 @@ use crate::{coordinate::Coordinate, rock::Rock};
 
 const WIDTH: usize = 9;
 const AIR_ROW: [bool; WIDTH] = [true, false, false, false, false, false, false, false, true];
+const SNAPSHOT_ROWS: usize = 50;
+
+pub type Snapshot = [bool; SNAPSHOT_ROWS * WIDTH];
 
 pub struct Chamber {
     grid: Vec<[bool; WIDTH]>,
@@ -46,6 +49,16 @@ impl Chamber {
                 coordinates: HashSet::new(),
             },
         }
+    }
+
+    pub fn get_snapshot(&self) -> Snapshot {
+        let mut snapshot = [false; SNAPSHOT_ROWS * WIDTH];
+        for (i, row) in self.grid.iter().rev().enumerate().take(SNAPSHOT_ROWS) {
+            for (j, c) in row.iter().enumerate() {
+                snapshot[i * WIDTH + j] = *c;
+            }
+        }
+        snapshot
     }
 
     pub fn top(&self) -> usize {

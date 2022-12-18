@@ -1,4 +1,9 @@
-use chamber::Chamber;
+use std::collections::HashMap;
+
+use chamber::{Chamber, Snapshot};
+
+const PART1_DROPS: usize = 2022;
+const PART2_DROPS: usize = 1_000_000_000_000;
 
 pub mod chamber;
 pub mod coordinate;
@@ -13,7 +18,7 @@ fn main() {
 fn problem1(input: &str) -> usize {
     let mut chamber = Chamber::new();
     let mut dir_iter = input.trim_end().chars().cycle();
-    for r in 0..2022 {
+    for r in 0..PART1_DROPS {
         chamber.start_dropping_rock(r);
         loop {
             match dir_iter.next().unwrap() {
@@ -30,7 +35,37 @@ fn problem1(input: &str) -> usize {
 }
 
 fn problem2(input: &str) -> usize {
-    unimplemented!()
+    let mut chamber = Chamber::new();
+    let mut dir_iter = input.trim_end().chars().cycle();
+    let mut cache: HashMap<Snapshot, usize> = HashMap::new();
+    let mut heights: Vec<usize> = Vec::new();
+    for r in 0..PART2_DROPS {
+        heights.push(chamber.top());
+        if let Some(snapshot_r) = cache.insert(chamber.get_snapshot(), r) {
+            let current_height = *heights.last().unwrap();
+            let snapshot_height = heights[snapshot_r];
+            let cycle_size = r - snapshot_r;
+
+            let complete_cycles = (PART2_DROPS - r) / cycle_size;
+            let r_reminaing = (PART2_DROPS - r) % cycle_size;
+
+            return current_height
+                + (current_height - snapshot_height) * complete_cycles
+                + (heights[snapshot_r + r_reminaing] - snapshot_height);
+        }
+        chamber.start_dropping_rock(r);
+        loop {
+            match dir_iter.next().unwrap() {
+                '>' => chamber.move_rock_right(),
+                '<' => chamber.move_rock_left(),
+                _ => unreachable!("Invalid input!"),
+            }
+            if !chamber.move_rock_down() {
+                break;
+            }
+        }
+    }
+    chamber.top()
 }
 
 #[test]
@@ -44,5 +79,5 @@ fn test_problem1() {
 fn test_problem2() {
     let input = include_str!("../data/sample.txt");
     let res = problem2(input);
-    assert_eq!(res, 0);
+    assert_eq!(res, 1514285714288);
 }
