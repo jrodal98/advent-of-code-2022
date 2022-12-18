@@ -15,20 +15,6 @@ struct Coordinate {
 }
 
 impl Coordinate {
-    fn adjacent(&self, other: &Self) -> bool {
-        self != other
-            && match (
-                self.x.abs_diff(other.x),
-                self.y.abs_diff(other.y),
-                self.z.abs_diff(other.z),
-            ) {
-                (1, 0, 0) => true,
-                (0, 1, 0) => true,
-                (0, 0, 1) => true,
-                _ => false,
-            }
-    }
-
     fn translate_new(&self, dx: isize, dy: isize, dz: isize) -> Self {
         Coordinate {
             x: self.x + dx,
@@ -62,13 +48,23 @@ impl Grid {
         Self { coordinates }
     }
 
-    fn sa_including_air_pockets(&self) -> usize {
-        self.coordinates.len() * 6
-            - self
-                .coordinates
+    fn area_including_air_pockets(&self) -> usize {
+        Self::area(&self.coordinates)
+    }
+
+    fn area_excluding_air_pockets(&self) -> usize {
+        let including_pockets = self.area_including_air_pockets();
+        let air_pocket_penalty = Self::area(&self.get_air_pockets());
+
+        including_pockets - air_pocket_penalty
+    }
+
+    fn area(coordinates: &HashSet<Coordinate>) -> usize {
+        coordinates.len() * 6
+            - coordinates
                 .iter()
                 .flat_map(|c| c.adjacent_coordinates())
-                .filter(|c| self.coordinates.contains(c))
+                .filter(|c| coordinates.contains(c))
                 .count()
     }
 
@@ -103,28 +99,14 @@ impl Grid {
 
         pockets
     }
-
-    fn sa_excluding_air_pockets(&self) -> usize {
-        let including_pockets = self.sa_including_air_pockets();
-        let air_pockets = self.get_air_pockets();
-
-        let air_pocket_penalty = air_pockets.len() * 6
-            - air_pockets
-                .iter()
-                .flat_map(|c| c.adjacent_coordinates())
-                .filter(|c| air_pockets.contains(c))
-                .count();
-
-        including_pockets - air_pocket_penalty
-    }
 }
 
 fn problem1(input: &str) -> usize {
-    Grid::new(input).sa_including_air_pockets()
+    Grid::new(input).area_including_air_pockets()
 }
 
 fn problem2(input: &str) -> usize {
-    Grid::new(input).sa_excluding_air_pockets()
+    Grid::new(input).area_excluding_air_pockets()
 }
 
 #[test]
