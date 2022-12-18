@@ -16,42 +16,31 @@ fn main() {
 }
 
 fn problem1(input: &str) -> usize {
-    let mut chamber = Chamber::new();
-    let mut dir_iter = input.trim_end().chars().cycle();
-    for r in 0..PART1_DROPS {
-        chamber.start_dropping_rock(r);
-        loop {
-            match dir_iter.next().unwrap() {
-                '>' => chamber.move_rock_right(),
-                '<' => chamber.move_rock_left(),
-                _ => unreachable!("Invalid input!"),
-            }
-            if !chamber.move_rock_down() {
-                break;
-            }
-        }
-    }
-    chamber.top()
+    drop_rocks(input, PART1_DROPS)
 }
 
 fn problem2(input: &str) -> usize {
+    drop_rocks(input, PART2_DROPS)
+}
+
+fn drop_rocks(input: &str, num_rocks: usize) -> usize {
     let mut chamber = Chamber::new();
     let mut dir_iter = input.trim_end().chars().cycle();
     let mut cache: HashMap<Snapshot, usize> = HashMap::new();
     let mut heights: Vec<usize> = Vec::new();
-    for r in 0..PART2_DROPS {
+    for r in 0..num_rocks {
         heights.push(chamber.top());
         if let Some(snapshot_r) = cache.insert(chamber.get_snapshot(), r) {
             let current_height = *heights.last().unwrap();
             let snapshot_height = heights[snapshot_r];
             let cycle_size = r - snapshot_r;
 
-            let complete_cycles = (PART2_DROPS - r) / cycle_size;
-            let r_reminaing = (PART2_DROPS - r) % cycle_size;
+            let complete_cycles = (num_rocks - r) / cycle_size;
+            let r_remaining = (num_rocks - r) % cycle_size;
 
             return current_height
                 + (current_height - snapshot_height) * complete_cycles
-                + (heights[snapshot_r + r_reminaing] - snapshot_height);
+                + (heights[snapshot_r + r_remaining] - snapshot_height);
         }
         chamber.start_dropping_rock(r);
         loop {
@@ -65,7 +54,7 @@ fn problem2(input: &str) -> usize {
             }
         }
     }
-    chamber.top()
+    *heights.last().unwrap()
 }
 
 #[test]
