@@ -1,4 +1,4 @@
-use std::{collections::HashSet, fmt::Display};
+use std::{collections::HashSet, fmt::Display, sync::mpsc::channel};
 
 const START_X: usize = 3;
 const WIDTH: usize = 9;
@@ -35,7 +35,7 @@ struct Rock {
 
 impl Rock {
     fn max_y(&self) -> usize {
-        self.coordinates.iter().map(|r| r.y).max().unwrap()
+        self.coordinates.iter().map(|r| r.y).max().unwrap_or(0)
     }
     fn new(rocks_dropped: usize, bottom: usize) -> Self {
         let coordinates = match rocks_dropped % 5 {
@@ -83,7 +83,6 @@ impl Rock {
 
 struct Chamber {
     grid: Vec<[bool; WIDTH]>,
-    top: usize,
     rock: Rock,
 }
 
@@ -119,15 +118,25 @@ impl Chamber {
 
         Self {
             grid,
-            top: 0,
-            rock: Rock::new(0, 0),
+            rock: Rock {
+                coordinates: HashSet::new(),
+            },
         }
     }
 
+    fn top(&self) -> usize {
+        self.grid
+            .iter()
+            .enumerate()
+            .rev()
+            .find(|(_, r)| (1..WIDTH - 1).any(|i| r[i]))
+            .unwrap()
+            .0
+    }
+
     fn start_dropping_rock(&mut self, r: usize) {
-        self.rock = Rock::new(r, self.top + 4);
-        self.top = self.rock.max_y();
-        self.grid.resize(self.top + 1, AIR_ROW);
+        self.rock = Rock::new(r, self.top() + 4);
+        self.grid.resize(self.rock.max_y() + 1, AIR_ROW);
         for c in self.rock.coordinates.iter() {
             self.grid[c.y][c.x] = true;
         }
@@ -166,7 +175,6 @@ impl Chamber {
             .coordinates
             .iter()
             .for_each(|c| self.grid[c.y][c.x] = true);
-        self.top = (self.top as isize + dy) as usize;
         true
     }
 
@@ -186,8 +194,7 @@ impl Chamber {
 fn problem1(input: &str) -> usize {
     let mut chamber = Chamber::new();
     let mut dir_iter = input.trim_end().chars().cycle();
-    for r in 0..10 {
-        dbg!(r);
+    for r in 0..2022 {
         chamber.start_dropping_rock(r);
         loop {
             match dir_iter.next().unwrap() {
@@ -201,7 +208,7 @@ fn problem1(input: &str) -> usize {
         }
     }
     println!("{}", &chamber);
-    chamber.top
+    chamber.top()
 }
 
 fn problem2(input: &str) -> usize {
