@@ -20,13 +20,13 @@ pub struct Game {
 
 impl Game {
     pub fn quality_level(&self) -> u16 {
-        self.blueprint.id
-            * Self::find_optimal(
-                self.clone(),
-                PLAY_TIME,
-                &mut HashMap::new(),
-                &mut [0; PLAY_TIME + 1],
-            )
+        let optimal = Self::find_optimal(self.clone(), PLAY_TIME, &mut HashMap::new());
+        let score = self.blueprint.id * optimal;
+        println!(
+            "Id: {}, geodes: {}, score: {}",
+            self.blueprint.id, optimal, score
+        );
+        score
     }
 
     fn collect_resources(&mut self) {
@@ -48,8 +48,8 @@ impl Game {
         mut game: Self,
         time_remaining: usize,
         cache: &mut HashMap<GameState, u16>,
-        max_at_time: &mut [u16; PLAY_TIME + 1],
     ) -> u16 {
+        game.state.minutes_passed += 1;
         let key = game.state.clone();
 
         if let Some(cached_result) = cache.get(&game.state) {
@@ -66,25 +66,11 @@ impl Game {
         } else if game.state.resources.can_afford(&game.blueprint.geode_cost) {
             game.buy_robot(Robot::Geode);
             game.collect_resources();
-            optimal = Some(Self::find_optimal(
-                game,
-                time_remaining - 1,
-                cache,
-                max_at_time,
-            ));
+            optimal = Some(Self::find_optimal(game, time_remaining - 1, cache));
         }
 
-        let highest_possible_geode = game.state.resources.geode as usize + game.state.factory.geode_robots as usize * time_remaining
-                    + ((time_remaining * (time_remaining + 1))
-                    / 2);
-
-        if optimal.is_some() 
-            // cannot possibly beat max
-        || highest_possible_geode
-                < max_at_time[time_remaining] as usize
-        {
+        if optimal.is_some() {
             let optimal = optimal.unwrap_or(0);
-            max_at_time[time_remaining] = max_at_time[time_remaining].max(optimal);
             cache.insert(key, optimal);
             return optimal;
         }
@@ -97,24 +83,14 @@ impl Game {
             let mut ore_game = game.clone();
             ore_game.buy_robot(Robot::Ore);
             ore_game.collect_resources();
-            optimal = optimal.max(Self::find_optimal(
-                ore_game,
-                time_remaining - 1,
-                cache,
-                max_at_time,
-            ));
+            optimal = optimal.max(Self::find_optimal(ore_game, time_remaining - 1, cache));
         }
 
         if game.state.resources.can_afford(&game.blueprint.clay_cost) {
             let mut clay_game = game.clone();
             clay_game.buy_robot(Robot::Clay);
             clay_game.collect_resources();
-            optimal = optimal.max(Self::find_optimal(
-                clay_game,
-                time_remaining - 1,
-                cache,
-                max_at_time,
-            ));
+            optimal = optimal.max(Self::find_optimal(clay_game, time_remaining - 1, cache));
         }
 
         if game
@@ -125,24 +101,13 @@ impl Game {
             let mut obsidian_game = game.clone();
             obsidian_game.buy_robot(Robot::Obsidian);
             obsidian_game.collect_resources();
-            optimal = optimal.max(Self::find_optimal(
-                obsidian_game,
-                time_remaining - 1,
-                cache,
-                max_at_time,
-            ));
+            optimal = optimal.max(Self::find_optimal(obsidian_game, time_remaining - 1, cache));
         }
 
         // do nothing
         game.collect_resources();
-        optimal = optimal.max(Self::find_optimal(
-            game,
-            time_remaining - 1,
-            cache,
-            max_at_time,
-        ));
+        optimal = optimal.max(Self::find_optimal(game, time_remaining - 1, cache));
 
-        max_at_time[time_remaining] = max_at_time[time_remaining].max(optimal);
         cache.insert(key, optimal);
         optimal
     }
