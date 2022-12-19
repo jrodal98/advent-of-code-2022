@@ -8,9 +8,8 @@ use rayon::prelude::*;
 const PART2_TIME: usize = 32;
 
 fn main() {
-    // let input = include_str!("../data/input.txt");
-    let input = include_str!("../data/sample.txt");
-    // println!("Problem 1: {}", problem1(input));
+    let input = include_str!("../data/input.txt");
+    println!("Problem 1: {}", problem1(input));
     println!("Problem 2: {}", problem2(input));
 }
 
@@ -27,8 +26,8 @@ fn problem2(input: &str) -> u32 {
         .lines()
         .take(3)
         .par_bridge()
-        .map(|line| line.parse::<Game>().unwrap().max_num_geodes(PART2_TIME))
-        .reduce(|| 0, |a, b| a * b) as u32
+        .map(|line| line.parse::<Game>().unwrap().max_num_geodes(PART2_TIME) as u32)
+        .product::<u32>()
 }
 
 #[cfg(test)]
