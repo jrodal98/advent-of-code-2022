@@ -1,9 +1,37 @@
-#[derive(Debug, PartialEq, Eq, Default)]
+use std::ops::{AddAssign, SubAssign};
+
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
+pub enum Robot {
+    Ore,
+    Clay,
+    Obsidian,
+    Geode,
+}
+
+#[derive(Debug, Hash, Copy, Clone, PartialEq, Eq, Default)]
 pub struct FactoryOutput {
     pub ore: u16,
     pub clay: u16,
     pub obsidian: u16,
     pub geode: u16,
+}
+
+impl AddAssign for FactoryOutput {
+    fn add_assign(&mut self, rhs: Self) {
+        self.ore += rhs.ore;
+        self.clay += rhs.clay;
+        self.obsidian += rhs.obsidian;
+        self.geode += rhs.geode;
+    }
+}
+
+impl SubAssign for FactoryOutput {
+    fn sub_assign(&mut self, rhs: Self) {
+        self.ore -= rhs.ore;
+        self.clay -= rhs.clay;
+        self.obsidian -= rhs.obsidian;
+        self.geode -= rhs.geode;
+    }
 }
 
 impl FactoryOutput {
@@ -21,9 +49,16 @@ impl FactoryOutput {
         self.obsidian = obsidian;
         self
     }
+
+    pub fn can_afford(&self, other: &Self) -> bool {
+        self.ore >= other.ore
+            && self.clay >= other.clay
+            && self.obsidian >= other.obsidian
+            && self.geode >= other.geode
+    }
 }
 
-#[derive(Debug, Hash, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 pub struct Factory {
     pub ore_robots: u16,
     pub clay_robots: u16,
@@ -53,11 +88,23 @@ impl Default for Factory {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Blueprint {
     pub id: u16,
     pub ore_cost: FactoryOutput,
     pub clay_cost: FactoryOutput,
     pub obsidian_cost: FactoryOutput,
     pub geode_cost: FactoryOutput,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_can_afford() {
+        let output1 = FactoryOutput::default().with_ore(2).with_obsidian(7);
+        let output2 = FactoryOutput::default().with_ore(2).with_clay(1);
+        assert_eq!(false, output2.can_afford(&output1));
+    }
 }
