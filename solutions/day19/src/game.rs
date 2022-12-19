@@ -29,8 +29,34 @@ impl Game {
         self.blueprint.id * self.max_num_geodes(PART1_TIME)
     }
 
+    fn should_produce_ore(&self) -> bool {
+        self.state.factory.ore_robots < self.blueprint.max_ore() 
+    }
+
+    fn should_produce_clay(&self) -> bool {
+        self.state.factory.clay_robots < self.blueprint.max_clay() 
+    }
+
+    fn should_produce_obsidian(&self) -> bool {
+        self.state.factory.obsidian_robots < self.blueprint.max_obsidian() 
+    }
+
     fn collect_resources(&mut self) {
         self.state.resources += self.state.factory.produce();
+
+        // throw away extra resources (for better caching)
+        if !self.should_produce_ore() {
+            self.state.resources.ore = self.state.resources.ore.min(self.blueprint.max_ore());
+        }
+
+        if !self.should_produce_clay() {
+            self.state.resources.clay = self.state.resources.clay.min(self.blueprint.max_clay());
+        }
+
+        if !self.should_produce_obsidian() {
+            self.state.resources.obsidian = self.state.resources.obsidian.min(self.blueprint.max_obsidian());
+        }
+
     }
 
     fn deliver_robot(&mut self) {
@@ -93,7 +119,7 @@ impl Game {
         let mut optimal = 0;
 
         // don't bother generating ore factories if you can't spend it fast enough
-        if game.state.factory.ore_robots < game.blueprint.max_ore() && game.state.resources.can_afford(&game.blueprint.ore_cost) {
+        if game.should_produce_ore() && game.state.resources.can_afford(&game.blueprint.ore_cost) {
             let mut ore_game = game.clone();
             ore_game.buy_robot(Robot::Ore);
             ore_game.collect_resources();
@@ -106,7 +132,7 @@ impl Game {
         }
 
         // don't bother generating clay factories if you can't spend it fast enough
-        if game.state.factory.clay_robots < game.blueprint.max_clay() && game.state.resources.can_afford(&game.blueprint.clay_cost) {
+        if game.should_produce_clay() && game.state.resources.can_afford(&game.blueprint.clay_cost) {
             let mut clay_game = game.clone();
             clay_game.buy_robot(Robot::Clay);
             clay_game.collect_resources();
@@ -119,7 +145,7 @@ impl Game {
         }
 
         // don't bother generating obsidian factories if you can't spend it fast enough
-        if game.state.factory.obsidian_robots < game.blueprint.max_obsidian() && game
+        if game.should_produce_obsidian() && game
             .state
             .resources
             .can_afford(&game.blueprint.obsidian_cost)
