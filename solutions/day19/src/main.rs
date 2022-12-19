@@ -14,8 +14,7 @@ fn problem1(input: &str) -> u16 {
     input
         .lines()
         .map(|line| line.parse::<Game>().unwrap().quality_level())
-        .max()
-        .unwrap_or(0)
+        .sum()
 }
 
 fn problem2(input: &str) -> u32 {
@@ -26,19 +25,19 @@ fn problem2(input: &str) -> u32 {
 mod tests {
     use super::*;
 
-    #[test]
-    fn test_problem1_simple() {
-        let input = "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.";
-        let res = problem1(input);
-        assert_eq!(res, 9);
-    }
-
     // #[test]
-    // fn test_problem1() {
-    //     let input = include_str!("../data/sample.txt");
+    // fn test_problem1_simple() {
+    //     let input = "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.";
     //     let res = problem1(input);
-    //     assert_eq!(res, 33);
+    //     assert_eq!(res, 9);
     // }
+
+    #[test]
+    fn test_problem1() {
+        let input = include_str!("../data/sample.txt");
+        let res = problem1(input);
+        assert_eq!(res, 33);
+    }
     //
     // #[test]
     // fn test_problem2() {

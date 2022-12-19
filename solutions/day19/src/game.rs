@@ -83,7 +83,6 @@ impl Game {
         || highest_possible_geode
                 < max_at_time[time_remaining] as usize
         {
-            dbg!(optimal, time_remaining, highest_possible_geode, max_at_time[time_remaining]);
             let optimal = optimal.unwrap_or(0);
             max_at_time[time_remaining] = max_at_time[time_remaining].max(optimal);
             cache.insert(key, optimal);
