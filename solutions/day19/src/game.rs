@@ -2,7 +2,7 @@ use std::{collections::HashMap, str::FromStr};
 
 use crate::factory::{Blueprint, Factory, FactoryOutput, Robot};
 
-const PLAY_TIME: usize = 24;
+const PART1_TIME: usize = 24;
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq, Default)]
 pub struct GameState {
@@ -19,14 +19,14 @@ pub struct Game {
 }
 
 impl Game {
+    pub fn max_num_geodes(&self, time: usize) -> u16 {
+        let mut max_seen: Vec<u16> = vec![0; time + 1];
+        let optimal = Self::find_optimal(self.clone(), time, &mut HashMap::new(), &mut max_seen);
+        println!("Id: {}, geodes: {}", self.blueprint.id, optimal);
+        optimal
+    }
     pub fn quality_level(&self) -> u16 {
-        let optimal = Self::find_optimal(self.clone(), PLAY_TIME, &mut HashMap::new());
-        let score = self.blueprint.id * optimal;
-        println!(
-            "Id: {}, geodes: {}, score: {}",
-            self.blueprint.id, optimal, score
-        );
-        score
+        self.blueprint.id * self.max_num_geodes(PART1_TIME)
     }
 
     fn collect_resources(&mut self) {
@@ -48,6 +48,7 @@ impl Game {
         mut game: Self,
         time_remaining: usize,
         cache: &mut HashMap<GameState, u16>,
+        max_seen: &mut Vec<u16>,
     ) -> u16 {
         game.state.minutes_passed += 1;
         let key = game.state.clone();
@@ -66,11 +67,25 @@ impl Game {
         } else if game.state.resources.can_afford(&game.blueprint.geode_cost) {
             game.buy_robot(Robot::Geode);
             game.collect_resources();
-            optimal = Some(Self::find_optimal(game, time_remaining - 1, cache));
+            optimal = Some(Self::find_optimal(
+                game,
+                time_remaining - 1,
+                cache,
+                max_seen,
+            ));
         }
 
-        if optimal.is_some() {
+        let highest_possible_geode = game.state.resources.geode as usize + game.state.factory.geode_robots as usize * time_remaining
+                    + ((time_remaining * (time_remaining + 1))
+                    / 2);
+
+        if optimal.is_some() 
+            // cannot possibly beat max
+        || highest_possible_geode
+                < max_seen[time_remaining] as usize
+        {
             let optimal = optimal.unwrap_or(0);
+            max_seen[time_remaining] = max_seen[time_remaining].max(optimal);
             cache.insert(key, optimal);
             return optimal;
         }
@@ -83,14 +98,24 @@ impl Game {
             let mut ore_game = game.clone();
             ore_game.buy_robot(Robot::Ore);
             ore_game.collect_resources();
-            optimal = optimal.max(Self::find_optimal(ore_game, time_remaining - 1, cache));
+            optimal = optimal.max(Self::find_optimal(
+                ore_game,
+                time_remaining - 1,
+                cache,
+                max_seen,
+            ));
         }
 
         if game.state.resources.can_afford(&game.blueprint.clay_cost) {
             let mut clay_game = game.clone();
             clay_game.buy_robot(Robot::Clay);
             clay_game.collect_resources();
-            optimal = optimal.max(Self::find_optimal(clay_game, time_remaining - 1, cache));
+            optimal = optimal.max(Self::find_optimal(
+                clay_game,
+                time_remaining - 1,
+                cache,
+                max_seen,
+            ));
         }
 
         if game
@@ -101,13 +126,24 @@ impl Game {
             let mut obsidian_game = game.clone();
             obsidian_game.buy_robot(Robot::Obsidian);
             obsidian_game.collect_resources();
-            optimal = optimal.max(Self::find_optimal(obsidian_game, time_remaining - 1, cache));
+            optimal = optimal.max(Self::find_optimal(
+                obsidian_game,
+                time_remaining - 1,
+                cache,
+                max_seen,
+            ));
         }
 
         // do nothing
         game.collect_resources();
-        optimal = optimal.max(Self::find_optimal(game, time_remaining - 1, cache));
+        optimal = optimal.max(Self::find_optimal(
+            game,
+            time_remaining - 1,
+            cache,
+            max_seen,
+        ));
 
+        max_seen[time_remaining] = max_seen[time_remaining].max(optimal);
         cache.insert(key, optimal);
         optimal
     }
