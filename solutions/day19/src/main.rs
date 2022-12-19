@@ -29,11 +29,6 @@ impl Cost {
         self.obsidian = obsidian;
         self
     }
-
-    fn with_geode(mut self, geode: u16) -> Self {
-        self.geode = geode;
-        self
-    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -53,6 +48,25 @@ struct Factory {
     geode_robots: u16,
 }
 
+#[derive(Debug, PartialEq, Eq)]
+struct FactoryOutput {
+    ore: u16,
+    clay: u16,
+    obsidian: u16,
+    geode: u16,
+}
+
+impl Factory {
+    fn produce(&self) -> FactoryOutput {
+        FactoryOutput {
+            ore: self.ore_robots,
+            clay: self.clay_robots,
+            obsidian: self.obsidian_robots,
+            geode: self.geode_robots,
+        }
+    }
+}
+
 impl Default for Factory {
     fn default() -> Self {
         Self {
@@ -66,6 +80,7 @@ impl Default for Factory {
 
 #[derive(Debug, PartialEq, Eq, Default)]
 struct GameState {
+    factory: Factory,
     ore: u16,
     clay: u16,
     obsidian: u16,
@@ -76,7 +91,6 @@ struct GameState {
 #[derive(Debug, PartialEq, Eq)]
 struct Game {
     blueprint: Blueprint,
-    factory: Factory,
     state: GameState,
 }
 
@@ -104,13 +118,8 @@ impl FromStr for Game {
             geode_cost,
         };
 
-        let factory = Factory::default();
         let state = GameState::default();
-        Ok(Self {
-            blueprint,
-            factory,
-            state,
-        })
+        Ok(Self { blueprint, state })
     }
 }
 
@@ -154,13 +163,13 @@ fn test_game_from_str() {
                 geode: 0,
             },
         },
-        factory: Factory {
-            ore_robots: 1,
-            clay_robots: 0,
-            obsidian_robots: 0,
-            geode_robots: 0,
-        },
         state: GameState {
+            factory: Factory {
+                ore_robots: 1,
+                clay_robots: 0,
+                obsidian_robots: 0,
+                geode_robots: 0,
+            },
             ore: 0,
             clay: 0,
             obsidian: 0,
