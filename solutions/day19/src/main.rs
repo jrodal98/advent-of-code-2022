@@ -3,9 +3,11 @@ use game::Game;
 pub mod factory;
 pub mod game;
 
+use rayon::prelude::*;
+
 fn main() {
-    // let input = include_str!("../data/input.txt");
-    let input = "Blueprint 1: Each ore robot costs 4 ore. Each clay robot costs 2 ore. Each obsidian robot costs 3 ore and 14 clay. Each geode robot costs 2 ore and 7 obsidian.";
+    let input = include_str!("../data/input.txt");
+    // let input = include_str!("../data/sample.txt");
     println!("Problem 1: {}", problem1(input));
     println!("Problem 2: {}", problem2(input));
 }
@@ -13,6 +15,7 @@ fn main() {
 fn problem1(input: &str) -> u16 {
     input
         .lines()
+        .par_bridge()
         .map(|line| line.parse::<Game>().unwrap().quality_level())
         .sum()
 }
