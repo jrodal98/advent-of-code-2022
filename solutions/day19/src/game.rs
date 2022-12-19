@@ -92,9 +92,8 @@ impl Game {
 
         let mut optimal = 0;
 
-        // might need to prune / act with priority...
-        // If you can afford an obsidian robot, you should probably buy one?
-        if game.state.resources.can_afford(&game.blueprint.ore_cost) {
+        // don't bother generating ore factories if you can't spend it fast enough
+        if game.state.factory.ore_robots < game.blueprint.max_ore() && game.state.resources.can_afford(&game.blueprint.ore_cost) {
             let mut ore_game = game.clone();
             ore_game.buy_robot(Robot::Ore);
             ore_game.collect_resources();
@@ -106,7 +105,8 @@ impl Game {
             ));
         }
 
-        if game.state.resources.can_afford(&game.blueprint.clay_cost) {
+        // don't bother generating clay factories if you can't spend it fast enough
+        if game.state.factory.clay_robots < game.blueprint.max_clay() && game.state.resources.can_afford(&game.blueprint.clay_cost) {
             let mut clay_game = game.clone();
             clay_game.buy_robot(Robot::Clay);
             clay_game.collect_resources();
@@ -118,7 +118,8 @@ impl Game {
             ));
         }
 
-        if game
+        // don't bother generating obsidian factories if you can't spend it fast enough
+        if game.state.factory.obsidian_robots < game.blueprint.max_obsidian() && game
             .state
             .resources
             .can_afford(&game.blueprint.obsidian_cost)

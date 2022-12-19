@@ -97,6 +97,23 @@ pub struct Blueprint {
     pub geode_cost: FactoryOutput,
 }
 
+impl Blueprint {
+    pub fn max_ore(&self) -> u16 {
+        self.ore_cost.ore.max(
+            self.clay_cost
+                .ore
+                .max(self.obsidian_cost.ore.max(self.geode_cost.ore)),
+        )
+    }
+    pub fn max_clay(&self) -> u16 {
+        self.obsidian_cost.clay
+    }
+
+    pub fn max_obsidian(&self) -> u16 {
+        self.geode_cost.obsidian
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
