@@ -28,20 +28,16 @@ fn mix(input: &str, key: isize, n: usize) -> isize {
 
             let translation = new_position - current_pos;
 
+            let base = positions[i];
             if translation > 0 {
-                for j in positions[i]..positions[i] + translation as usize {
-                    positions[val_proxies[j]] = j + 1;
-                    positions[val_proxies[j + 1]] = j;
+                for j in base..base + translation as usize {
+                    positions.swap(val_proxies[j], val_proxies[j + 1]);
                     val_proxies.swap(j, j + 1);
                 }
             } else if translation < 0 {
-                let base = positions[i];
-                for j in 0..-translation as usize {
-                    let x = base - j;
-                    let y = base - j - 1;
-                    positions[val_proxies[x]] = y;
-                    positions[val_proxies[y]] = x;
-                    val_proxies.swap(x, y);
+                for j in ((base as isize + translation + 1) as usize..base + 1).rev() {
+                    positions.swap(val_proxies[j], val_proxies[j - 1]);
+                    val_proxies.swap(j, j - 1);
                 }
             }
         }
