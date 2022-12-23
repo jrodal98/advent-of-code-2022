@@ -111,7 +111,7 @@ impl Grid {
         let max_x = self.elves.iter().map(|e| e.x).max().unwrap_or(0);
         let min_y = self.elves.iter().map(|e| e.y).min().unwrap_or(0);
         let max_y = self.elves.iter().map(|e| e.y).max().unwrap_or(0);
-        let num_elves = self.elves.len() as isize;
+        let num_elves = self.elves.len() as i16;
 
         (((max_x - min_x + 1) * (max_y - min_y + 1)) - num_elves) as u32
     }
@@ -136,7 +136,7 @@ impl FromStr for Grid {
             .flat_map(|(y, line)| {
                 line.chars().enumerate().filter_map(move |(x, c)| {
                     if c == '#' {
-                        Some(Coordinate::new(x as isize, y as isize))
+                        Some(Coordinate::new(x as i16, y as i16))
                     } else {
                         None
                     }
