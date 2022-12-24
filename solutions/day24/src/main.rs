@@ -1,4 +1,8 @@
-use std::{collections::HashSet, hash::Hash, str::FromStr};
+use std::{
+    collections::{HashMap, HashSet},
+    hash::Hash,
+    str::FromStr,
+};
 
 const GRID_ENTRANCE: Coordinate = Coordinate { x: 1, y: 0 };
 
@@ -188,7 +192,8 @@ impl Grid {
             0
         } else {
             let mut best_so_far = usize::MAX;
-            self.clone().leave_grid(0, &mut best_so_far)
+            self.clone()
+                .leave_grid(0, &mut best_so_far, &mut HashMap::new())
         }
     }
 
@@ -201,7 +206,16 @@ impl Grid {
                 && !self.blizzards.iter().any(|b| b.contains(coordinate)))
     }
 
-    fn leave_grid(mut self, time_passed: usize, best_so_far: &mut usize) -> usize {
+    fn leave_grid(
+        mut self,
+        time_passed: usize,
+        best_so_far: &mut usize,
+        cache: &mut HashMap<(Coordinate, usize), usize>,
+    ) -> usize {
+        let key = (self.expedition.clone(), time_passed);
+        if let Some(cached_result) = cache.get(&key) {
+            return *cached_result;
+        }
         if time_passed + (self.expedition.distance(&self.exit) as usize) >= *best_so_far {
             return usize::MAX;
         }
@@ -223,7 +237,7 @@ impl Grid {
                 };
                 let mut new_grid = self.clone();
                 new_grid.expedition = self.expedition.move_in_direction(&new_direction);
-                let new_direction_best = new_grid.leave_grid(time_passed + 1, best_so_far);
+                let new_direction_best = new_grid.leave_grid(time_passed + 1, best_so_far, cache);
                 best_from_here = best_from_here.min(new_direction_best);
             } else {
                 for movement in Direction::iterator()
@@ -232,7 +246,8 @@ impl Grid {
                 {
                     let mut new_grid = self.clone();
                     new_grid.expedition = movement;
-                    let new_direction_best = new_grid.leave_grid(time_passed + 1, best_so_far);
+                    let new_direction_best =
+                        new_grid.leave_grid(time_passed + 1, best_so_far, cache);
                     best_from_here = best_from_here.min(new_direction_best);
                 }
             }
@@ -242,6 +257,7 @@ impl Grid {
             *best_so_far = best_from_here;
             println!("{}", &best_so_far);
         }
+        cache.insert(key, best_from_here);
         best_from_here
     }
 }
