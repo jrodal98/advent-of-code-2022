@@ -13,6 +13,12 @@ enum Rotation {
     N,
 }
 
+enum TeleportationStrategy {
+    Part1,
+    Part2Sample,
+    Part2MyInput,
+}
+
 #[derive(Debug)]
 enum Movement {
     U(u8),
@@ -33,6 +39,14 @@ impl From<Movement> for u32 {
 }
 
 impl Movement {
+    fn unpack_translation(&self) -> (u8, i16, i16) {
+        match &self {
+            &Movement::U(steps) => (*steps, 0, -1),
+            &Movement::D(steps) => (*steps, 0, 1),
+            &Movement::L(steps) => (*steps, -1, 0),
+            &Movement::R(steps) => (*steps, 1, 0),
+        }
+    }
     fn new_with_rotation(last_movement: &Movement, rotation: Rotation, steps: u8) -> Self {
         match (last_movement, rotation) {
             (Movement::U(_), Rotation::L) => Movement::L(steps),
@@ -108,26 +122,21 @@ struct Board {
 }
 
 impl Board {
-    pub fn explore(&mut self, movement: Movement) -> u32 {
-        let (steps, dx, dy) = match &movement {
-            &Movement::U(steps) => (steps, 0, -1),
-            &Movement::D(steps) => (steps, 0, 1),
-            &Movement::L(steps) => (steps, -1, 0),
-            &Movement::R(steps) => (steps, 1, 0),
-        };
+    pub fn explore(&mut self, mut movement: Movement, strategy: &TeleportationStrategy) -> u32 {
+        let (steps, mut dx, mut dy) = movement.unpack_translation();
 
         for _ in 0..steps {
             let new_position = self
                 .explorer
                 .try_new_from_translation(dx, dy)
-                .unwrap_or_else(|| self.teleport(&movement));
+                .unwrap_or_else(|| self.teleport(&mut movement, &mut dx, &mut dy, strategy));
 
             if self.wall_tiles.contains(&new_position) {
                 break;
             } else if self.empty_tiles.contains(&new_position) {
                 self.explorer = new_position;
             } else {
-                let new_position = self.teleport(&movement);
+                let new_position = self.teleport(&mut movement, &mut dx, &mut dy, strategy);
                 if self.wall_tiles.contains(&new_position) {
                     break;
                 } else {
@@ -143,9 +152,23 @@ impl Board {
         movement_score + column_score + row_score
     }
 
-    fn teleport(&self, movement: &Movement) -> Coordinate {
+    fn teleport(
+        &self,
+        movement: &mut Movement,
+        dx: &mut i16,
+        dy: &mut i16,
+        strategy: &TeleportationStrategy,
+    ) -> Coordinate {
+        match strategy {
+            TeleportationStrategy::Part1 => self.teleport_part1(movement, dx, dy),
+            TeleportationStrategy::Part2Sample => todo!(),
+            TeleportationStrategy::Part2MyInput => todo!(),
+        }
+    }
+
+    fn teleport_part1(&self, movement: &mut Movement, dx: &mut i16, dy: &mut i16) -> Coordinate {
         let all_points = self.wall_tiles.union(&self.empty_tiles);
-        let new_coordinate = match &movement {
+        match &movement {
             Movement::U(_) => {
                 let y = all_points
                     .into_iter()
@@ -182,9 +205,7 @@ impl Board {
                     .unwrap();
                 Coordinate::new(x, self.explorer.y)
             }
-        };
-
-        new_coordinate
+        }
     }
 }
 
@@ -250,7 +271,7 @@ fn problem1(input: &str) -> u32 {
 
     let mut score = 0;
     for movement in movements {
-        score = board.explore(movement);
+        score = board.explore(movement, &TeleportationStrategy::Part1);
     }
 
     score
