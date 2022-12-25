@@ -129,21 +129,26 @@ impl Board {
         let (steps, mut dx, mut dy) = movement.unpack_translation();
 
         for _ in 0..steps {
+            dbg!(("Before", &movement, &dx, &dy, &self.explorer));
             let new_position = self
                 .explorer
                 .try_new_from_translation(dx, dy)
                 .unwrap_or_else(|| self.teleport(&mut movement, &mut dx, &mut dy, strategy));
 
             if self.wall_tiles.contains(&new_position) {
+                dbg!(("After", &movement, &dx, &dy, &self.explorer));
                 break;
             } else if self.empty_tiles.contains(&new_position) {
                 self.explorer = new_position;
+                dbg!(("After", &movement, &dx, &dy, &self.explorer));
             } else {
                 let new_position = self.teleport(&mut movement, &mut dx, &mut dy, strategy);
                 if self.wall_tiles.contains(&new_position) {
+                    dbg!(("After", &movement, &dx, &dy, &self.explorer));
                     break;
                 } else {
                     self.explorer = new_position;
+                    dbg!(("After", &movement, &dx, &dy, &self.explorer));
                 }
             }
         }
@@ -164,8 +169,8 @@ impl Board {
     ) -> Coordinate {
         let (coordinate, new_movement) = match strategy {
             TeleportationStrategy::Part1 => self.teleport_part1(movement),
-            TeleportationStrategy::Part2Sample => self.teleport_part2_sample(movement, dx, dy),
-            TeleportationStrategy::Part2MyInput => self.teleport_part2_my_input(movement, dx, dy),
+            TeleportationStrategy::Part2Sample => self.teleport_part2_sample(movement),
+            TeleportationStrategy::Part2MyInput => self.teleport_part2_my_input(movement),
         };
 
         *movement = new_movement;
@@ -215,63 +220,34 @@ impl Board {
         }
     }
 
-    fn teleport_part2_sample(
-        &self,
-        movement: &mut Movement,
-        dx: &mut i16,
-        dy: &mut i16,
-    ) -> (Coordinate, Movement) {
+    fn teleport_part2_sample(&self, movement: &mut Movement) -> (Coordinate, Movement) {
         let (col, row) = (self.explorer.x, self.explorer.y);
-        if row <= 3 && col >= 8 && col <= 11 {
-            match movement {
-                Movement::U(m) => (Coordinate::new(13 - row, 5), Movement::D(*m)),
-                Movement::L(m) => (Coordinate::new(row + 4, 5), Movement::D(*m)),
-                Movement::R(m) => (Coordinate::new(16, 13 - row), Movement::L(*m)),
-                _ => unreachable!(),
-            }
-        } else if row >= 4 && row <= 7 && col <= 3 {
-            match movement {
-                Movement::D(m) => (Coordinate::new(13 - col, 12), Movement::U(*m)),
-                Movement::L(m) => (Coordinate::new(21 - row, 12), Movement::U(*m)),
-                Movement::U(m) => (Coordinate::new(13 - col, 1), Movement::D(*m)),
-                _ => unreachable!(),
-            }
-        } else if row >= 4 && row <= 7 && col >= 4 && col <= 7 {
-            match movement {
-                Movement::D(m) => (Coordinate::new(9, 17 - col), Movement::R(*m)),
-                Movement::U(m) => (Coordinate::new(9, col - 4), Movement::R(*m)),
-                _ => unreachable!(),
-            }
-        } else if row >= 4 && row <= 7 && col >= 8 && col <= 11 {
-            // (11, 5) -> (14, 8)
-            match movement {
-                Movement::R(m) => (Coordinate::new(21 - row, 9), Movement::D(*m)),
-                _ => unreachable!(),
-            }
-        } else if row >= 8 && row <= 11 && col >= 8 && col <= 11 {
-            match movement {
-                Movement::D(m) => (Coordinate::new(13 - col, 8), Movement::U(*m)),
-                Movement::L(m) => (Coordinate::new(17 - row, 8), Movement::U(*m)),
-                _ => unreachable!(),
-            }
-        } else if row >= 12 && row <= 15 && col >= 8 && col <= 11 {
-            match movement {
-                Movement::R(m) => (Coordinate::new(12, 13 - row), Movement::L(*m)),
-                Movement::D(m) => (Coordinate::new(1, 21 - col), Movement::R(*m)),
-                Movement::U(m) => (Coordinate::new(12, 21 - col), Movement::L(*m)),
-                _ => unreachable!(),
-            }
-        } else {
-            unreachable!()
+        match (row, col, movement) {
+            // Face 1
+            (0..=3, 8..=11, Movement::U(m)) => (Coordinate::new(11 - row, 4), Movement::D(*m)),
+            (0..=3, 8..=11, Movement::L(m)) => (Coordinate::new(row + 4, 4), Movement::D(*m)),
+            (0..=3, 8..=11, Movement::R(m)) => (Coordinate::new(15, 11 - row), Movement::L(*m)),
+            // Face 2
+            (4..=7, 0..=3, Movement::D(m)) => (Coordinate::new(11 - col, 11), Movement::U(*m)),
+            (4..=7, 0..=3, Movement::L(m)) => (Coordinate::new(19 - row, 11), Movement::U(*m)),
+            (4..=7, 0..=3, Movement::U(m)) => (Coordinate::new(12 - col, 0), Movement::D(*m)),
+            // Face 3
+            (4..=7, 4..=7, Movement::D(m)) => (Coordinate::new(8, 15 - col), Movement::R(*m)),
+            (4..=7, 4..=7, Movement::U(m)) => (Coordinate::new(8, col - 2), Movement::R(*m)),
+            // Face 4
+            (4..=7, 8..=11, Movement::R(m)) => (Coordinate::new(19 - row, 8), Movement::D(*m)),
+            // Face 5
+            (8..=11, 8..=11, Movement::D(m)) => (Coordinate::new(11 - col, 7), Movement::U(*m)),
+            (8..=11, 8..=11, Movement::L(m)) => (Coordinate::new(15 - row, 7), Movement::U(*m)),
+            // Face 6
+            (8..=11, 12..=15, Movement::R(m)) => (Coordinate::new(11, 11 - row), Movement::L(*m)),
+            (8..=11, 12..=15, Movement::D(m)) => (Coordinate::new(0, 19 - col), Movement::R(*m)),
+            (8..=11, 12..=15, Movement::U(m)) => (Coordinate::new(11, 19 - col), Movement::L(*m)),
+            _ => unreachable!(),
         }
     }
 
-    fn teleport_part2_my_input(
-        &self,
-        movement: &mut Movement,
-        dx: &mut i16,
-        dy: &mut i16,
-    ) -> (Coordinate, Movement) {
+    fn teleport_part2_my_input(&self, movement: &mut Movement) -> (Coordinate, Movement) {
         todo!()
     }
 }
@@ -363,5 +339,5 @@ fn test_problem1() {
 fn test_problem2() {
     let input = include_str!("../data/sample.txt");
     let res = problem2(input, TeleportationStrategy::Part2Sample);
-    assert_eq!(res, 0);
+    assert_eq!(res, 5031);
 }
