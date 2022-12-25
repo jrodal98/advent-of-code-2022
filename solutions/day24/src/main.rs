@@ -332,9 +332,9 @@ fn test_problem1() {
 // part 2 does not work on sample input for some reason
 // even though it works on puzzle input
 
-// #[test]
-// fn test_problem2() {
-//     let input = include_str!("../data/sample.txt");
-//     let res = problem2(input);
-//     assert_eq!(res, 54);
-// }
+#[test]
+fn test_problem2() {
+    let input = include_str!("../data/sample.txt");
+    let res = problem2(input);
+    assert_eq!(res, 54);
+}
