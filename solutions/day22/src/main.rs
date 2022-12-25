@@ -3,7 +3,10 @@ use std::{collections::HashSet, str::FromStr};
 fn main() {
     let input = include_str!("../data/input.txt");
     println!("Problem 1: {}", problem1(input));
-    println!("Problem 2: {}", problem2(input));
+    println!(
+        "Problem 2: {}",
+        problem2(input, TeleportationStrategy::Part2MyInput)
+    );
 }
 
 #[derive(Debug)]
@@ -19,7 +22,7 @@ enum TeleportationStrategy {
     Part2MyInput,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 enum Movement {
     U(u8),
     D(u8),
@@ -159,14 +162,18 @@ impl Board {
         dy: &mut i16,
         strategy: &TeleportationStrategy,
     ) -> Coordinate {
-        match strategy {
-            TeleportationStrategy::Part1 => self.teleport_part1(movement, dx, dy),
-            TeleportationStrategy::Part2Sample => todo!(),
-            TeleportationStrategy::Part2MyInput => todo!(),
-        }
+        let (coordinate, new_movement) = match strategy {
+            TeleportationStrategy::Part1 => self.teleport_part1(movement),
+            TeleportationStrategy::Part2Sample => self.teleport_part2_sample(movement, dx, dy),
+            TeleportationStrategy::Part2MyInput => self.teleport_part2_my_input(movement, dx, dy),
+        };
+
+        *movement = new_movement;
+        (_, *dx, *dy) = movement.unpack_translation();
+        coordinate
     }
 
-    fn teleport_part1(&self, movement: &mut Movement, dx: &mut i16, dy: &mut i16) -> Coordinate {
+    fn teleport_part1(&self, movement: &Movement) -> (Coordinate, Movement) {
         let all_points = self.wall_tiles.union(&self.empty_tiles);
         match &movement {
             Movement::U(_) => {
@@ -176,7 +183,7 @@ impl Board {
                     .map(|&c| c.y)
                     .max()
                     .unwrap();
-                Coordinate::new(self.explorer.x, y)
+                (Coordinate::new(self.explorer.x, y), movement.clone())
             }
             Movement::D(_) => {
                 let y = all_points
@@ -185,7 +192,7 @@ impl Board {
                     .map(|&c| c.y)
                     .min()
                     .unwrap();
-                Coordinate::new(self.explorer.x, y)
+                (Coordinate::new(self.explorer.x, y), movement.clone())
             }
             Movement::L(_) => {
                 let x = all_points
@@ -194,7 +201,7 @@ impl Board {
                     .map(|&c| c.x)
                     .max()
                     .unwrap();
-                Coordinate::new(x, self.explorer.y)
+                (Coordinate::new(x, self.explorer.y), movement.clone())
             }
             Movement::R(_) => {
                 let x = all_points
@@ -203,9 +210,69 @@ impl Board {
                     .map(|&c| c.x)
                     .min()
                     .unwrap();
-                Coordinate::new(x, self.explorer.y)
+                (Coordinate::new(x, self.explorer.y), movement.clone())
             }
         }
+    }
+
+    fn teleport_part2_sample(
+        &self,
+        movement: &mut Movement,
+        dx: &mut i16,
+        dy: &mut i16,
+    ) -> (Coordinate, Movement) {
+        let (col, row) = (self.explorer.x, self.explorer.y);
+        if row <= 3 && col >= 8 && col <= 11 {
+            match movement {
+                Movement::U(m) => (Coordinate::new(13 - row, 5), Movement::D(*m)),
+                Movement::L(m) => (Coordinate::new(row + 4, 5), Movement::D(*m)),
+                Movement::R(m) => (Coordinate::new(16, 13 - row), Movement::L(*m)),
+                _ => unreachable!(),
+            }
+        } else if row >= 4 && row <= 7 && col <= 3 {
+            match movement {
+                Movement::D(m) => (Coordinate::new(13 - col, 12), Movement::U(*m)),
+                Movement::L(m) => (Coordinate::new(21 - row, 12), Movement::U(*m)),
+                Movement::U(m) => (Coordinate::new(13 - col, 1), Movement::D(*m)),
+                _ => unreachable!(),
+            }
+        } else if row >= 4 && row <= 7 && col >= 4 && col <= 7 {
+            match movement {
+                Movement::D(m) => (Coordinate::new(9, 17 - col), Movement::R(*m)),
+                Movement::U(m) => (Coordinate::new(9, col - 4), Movement::R(*m)),
+                _ => unreachable!(),
+            }
+        } else if row >= 4 && row <= 7 && col >= 8 && col <= 11 {
+            // (11, 5) -> (14, 8)
+            match movement {
+                Movement::R(m) => (Coordinate::new(21 - row, 9), Movement::D(*m)),
+                _ => unreachable!(),
+            }
+        } else if row >= 8 && row <= 11 && col >= 8 && col <= 11 {
+            match movement {
+                Movement::D(m) => (Coordinate::new(13 - col, 8), Movement::U(*m)),
+                Movement::L(m) => (Coordinate::new(17 - row, 8), Movement::U(*m)),
+                _ => unreachable!(),
+            }
+        } else if row >= 12 && row <= 15 && col >= 8 && col <= 11 {
+            match movement {
+                Movement::R(m) => (Coordinate::new(12, 13 - row), Movement::L(*m)),
+                Movement::D(m) => (Coordinate::new(1, 21 - col), Movement::R(*m)),
+                Movement::U(m) => (Coordinate::new(12, 21 - col), Movement::L(*m)),
+                _ => unreachable!(),
+            }
+        } else {
+            unreachable!()
+        }
+    }
+
+    fn teleport_part2_my_input(
+        &self,
+        movement: &mut Movement,
+        dx: &mut i16,
+        dy: &mut i16,
+    ) -> (Coordinate, Movement) {
+        todo!()
     }
 }
 
@@ -258,7 +325,7 @@ impl Coordinate {
     }
 }
 
-fn problem1(input: &str) -> u32 {
+fn solve(input: &str, strategy: TeleportationStrategy) -> u32 {
     let (mut board, movements) = input
         .split_once("\n\n")
         .map(|(board_str, movements_str)| {
@@ -271,14 +338,18 @@ fn problem1(input: &str) -> u32 {
 
     let mut score = 0;
     for movement in movements {
-        score = board.explore(movement, &TeleportationStrategy::Part1);
+        score = board.explore(movement, &strategy);
     }
 
     score
 }
 
-fn problem2(input: &str) -> u32 {
-    unimplemented!()
+fn problem1(input: &str) -> u32 {
+    solve(input, TeleportationStrategy::Part1)
+}
+
+fn problem2(input: &str, strategy: TeleportationStrategy) -> u32 {
+    solve(input, strategy)
 }
 
 #[test]
@@ -291,6 +362,6 @@ fn test_problem1() {
 #[test]
 fn test_problem2() {
     let input = include_str!("../data/sample.txt");
-    let res = problem2(input);
+    let res = problem2(input, TeleportationStrategy::Part2Sample);
     assert_eq!(res, 0);
 }
