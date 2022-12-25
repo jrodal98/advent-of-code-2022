@@ -53,11 +53,9 @@ impl From<isize> for Snafu {
         let mut carry_over = 0;
         let mut symbols: Vec<SnafuSymbol> = Vec::new();
 
-        while value_remaining > 0 {
-            // I might be losing carry overs when this happens... might need to add after mod?
-            // If adding carry over to r results in r being > 4, then carry the carry over
+        while (value_remaining + carry_over) > 0 {
             let r = (value_remaining + carry_over) % 5;
-            value_remaining = value_remaining / 5;
+            value_remaining = (value_remaining + carry_over) / 5;
             let s = match r {
                 0 => {
                     carry_over = 0;
@@ -172,4 +170,19 @@ mod tests {
     conversion_test! {"12", 7, snafu_to_dec_11, dec_to_snafu_11}
     conversion_test! {"1=", 3, snafu_to_dec_12, dec_to_snafu_12}
     conversion_test! {"122", 37, snafu_to_dec_13, dec_to_snafu_13}
+    conversion_test! {"1", 1, snafu_to_dec_14, dec_to_snafu_14}
+    conversion_test! {"2", 2, snafu_to_dec_15, dec_to_snafu_15}
+    conversion_test! {"1=", 3, snafu_to_dec_16, dec_to_snafu_16}
+    conversion_test! {"1-", 4, snafu_to_dec_17, dec_to_snafu_17}
+    conversion_test! {"10", 5, snafu_to_dec_18, dec_to_snafu_18}
+    conversion_test! {"11", 6, snafu_to_dec_19, dec_to_snafu_19}
+    conversion_test! {"12", 7, snafu_to_dec_20, dec_to_snafu_20}
+    conversion_test! {"2=", 8, snafu_to_dec_21, dec_to_snafu_21}
+    conversion_test! {"2-", 9, snafu_to_dec_22, dec_to_snafu_22}
+    conversion_test! {"20", 10, snafu_to_dec_23, dec_to_snafu_23}
+    conversion_test! {"1=0", 15, snafu_to_dec_24, dec_to_snafu_24}
+    conversion_test! {"1-0", 20, snafu_to_dec_25, dec_to_snafu_25}
+    conversion_test! {"1=11-2", 2022, snafu_to_dec_26, dec_to_snafu_26}
+    conversion_test! {"1-0---0", 12345, snafu_to_dec_27, dec_to_snafu_27}
+    conversion_test! {"1121-1110-1=0", 314159265, snafu_to_dec_28, dec_to_snafu_28}
 }
