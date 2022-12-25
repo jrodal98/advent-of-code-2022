@@ -253,9 +253,6 @@ fn problem1(input: &str) -> u32 {
         score = board.explore(movement);
     }
 
-    // 139188 is too high
-    // answer is 76322
-
     score
 }
 
