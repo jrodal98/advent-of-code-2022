@@ -9,99 +9,6 @@ pub enum SnafuSymbol {
     DoubleMinus,
 }
 
-pub struct Snafu {
-    /// most significant appears first
-    symbols: Vec<SnafuSymbol>,
-}
-
-impl Sum for Snafu {
-    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-        iter.reduce(|acc, s| acc + s).unwrap()
-    }
-}
-
-impl Add for Snafu {
-    type Output = Self;
-
-    fn add(self, rhs: Self) -> Self::Output {
-        Self::from(isize::from(self) + isize::from(rhs))
-    }
-}
-
-impl FromStr for Snafu {
-    type Err = ();
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(Self {
-            symbols: s.chars().into_iter().map(|c| c.into()).collect(),
-        })
-    }
-}
-
-impl ToString for Snafu {
-    fn to_string(&self) -> String {
-        self.symbols.iter().map(|s| char::from(s)).collect()
-    }
-}
-
-impl From<Snafu> for isize {
-    fn from(value: Snafu) -> Self {
-        value
-            .symbols
-            .iter()
-            .rev()
-            .enumerate()
-            .map(|(i, s)| 5_isize.pow(i as u32) * isize::from(s))
-            .sum()
-    }
-}
-
-impl From<isize> for Snafu {
-    fn from(value: isize) -> Self {
-        let mut num_digits = 1;
-        while 5_isize.pow(num_digits - 1) < value {
-            num_digits += 1;
-        }
-
-        let mut value_remaining = value;
-        let mut carry_over = 0;
-        let mut symbols: Vec<SnafuSymbol> = Vec::new();
-
-        while (value_remaining + carry_over) > 0 {
-            let r = (value_remaining + carry_over) % 5;
-            value_remaining = (value_remaining + carry_over) / 5;
-            let s = match r {
-                0 => {
-                    carry_over = 0;
-                    SnafuSymbol::Zero
-                }
-                1 => {
-                    carry_over = 0;
-                    SnafuSymbol::One
-                }
-                2 => {
-                    carry_over = 0;
-                    SnafuSymbol::Two
-                }
-                3 => {
-                    carry_over = 1;
-                    SnafuSymbol::DoubleMinus
-                }
-                4 => {
-                    carry_over = 1;
-                    SnafuSymbol::Minus
-                }
-                _ => unreachable!(),
-            };
-            symbols.push(s)
-        }
-
-        symbols.reverse();
-
-        Self { symbols }
-    }
-}
-
 impl From<SnafuSymbol> for isize {
     fn from(value: SnafuSymbol) -> Self {
         Self::from(&value)
@@ -148,6 +55,94 @@ impl From<&SnafuSymbol> for char {
             SnafuSymbol::Minus => '-',
             SnafuSymbol::DoubleMinus => '=',
         }
+    }
+}
+
+pub struct Snafu {
+    /// most significant appears first
+    symbols: Vec<SnafuSymbol>,
+}
+
+impl Add for Snafu {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self::from(isize::from(self) + isize::from(rhs))
+    }
+}
+
+impl Sum for Snafu {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.reduce(|acc, s| acc + s).unwrap()
+    }
+}
+
+impl FromStr for Snafu {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self {
+            symbols: s.chars().into_iter().map(|c| c.into()).collect(),
+        })
+    }
+}
+
+impl ToString for Snafu {
+    fn to_string(&self) -> String {
+        self.symbols.iter().map(|s| char::from(s)).collect()
+    }
+}
+
+impl From<Snafu> for isize {
+    fn from(value: Snafu) -> Self {
+        value
+            .symbols
+            .iter()
+            .rev()
+            .enumerate()
+            .map(|(i, s)| 5_isize.pow(i as u32) * isize::from(s))
+            .sum()
+    }
+}
+
+impl From<isize> for Snafu {
+    fn from(value: isize) -> Self {
+        let mut value_remaining = value;
+        let mut carry_over = 0;
+        let mut symbols: Vec<SnafuSymbol> = Vec::new();
+
+        while (value_remaining + carry_over) > 0 {
+            let r = (value_remaining + carry_over) % 5;
+            value_remaining = (value_remaining + carry_over) / 5;
+            let s = match r {
+                0 => {
+                    carry_over = 0;
+                    SnafuSymbol::Zero
+                }
+                1 => {
+                    carry_over = 0;
+                    SnafuSymbol::One
+                }
+                2 => {
+                    carry_over = 0;
+                    SnafuSymbol::Two
+                }
+                3 => {
+                    carry_over = 1;
+                    SnafuSymbol::DoubleMinus
+                }
+                4 => {
+                    carry_over = 1;
+                    SnafuSymbol::Minus
+                }
+                _ => unreachable!(),
+            };
+            symbols.push(s)
+        }
+
+        symbols.reverse();
+
+        Self { symbols }
     }
 }
 
