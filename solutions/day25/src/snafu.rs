@@ -24,6 +24,12 @@ impl FromStr for Snafu {
     }
 }
 
+impl ToString for Snafu {
+    fn to_string(&self) -> String {
+        self.symbols.iter().map(|s| char::from(s)).collect()
+    }
+}
+
 impl From<Snafu> for isize {
     fn from(value: Snafu) -> Self {
         value
@@ -36,12 +42,53 @@ impl From<Snafu> for isize {
     }
 }
 
-// impl From<isize> for Snafu {
-//     fn from(value: isize) -> Self {
-//         let mut num_digits =
-//         todo!()
-//     }
-// }
+impl From<isize> for Snafu {
+    fn from(value: isize) -> Self {
+        let mut num_digits = 1;
+        while 5_isize.pow(num_digits - 1) < value {
+            num_digits += 1;
+        }
+
+        let mut value_remaining = value;
+        let mut carry_over = 0;
+        let mut symbols: Vec<SnafuSymbol> = Vec::new();
+
+        while value_remaining > 0 {
+            // I might be losing carry overs when this happens... might need to add after mod?
+            // If adding carry over to r results in r being > 4, then carry the carry over
+            let r = (value_remaining + carry_over) % 5;
+            value_remaining = value_remaining / 5;
+            let s = match r {
+                0 => {
+                    carry_over = 0;
+                    SnafuSymbol::Zero
+                }
+                1 => {
+                    carry_over = 0;
+                    SnafuSymbol::One
+                }
+                2 => {
+                    carry_over = 0;
+                    SnafuSymbol::Two
+                }
+                3 => {
+                    carry_over = 1;
+                    SnafuSymbol::DoubleMinus
+                }
+                4 => {
+                    carry_over = 1;
+                    SnafuSymbol::Minus
+                }
+                _ => unreachable!(),
+            };
+            symbols.push(s)
+        }
+
+        symbols.reverse();
+
+        Self { symbols }
+    }
+}
 
 impl From<SnafuSymbol> for isize {
     fn from(value: SnafuSymbol) -> Self {
@@ -76,6 +123,12 @@ impl From<char> for SnafuSymbol {
 
 impl From<SnafuSymbol> for char {
     fn from(value: SnafuSymbol) -> Self {
+        Self::from(&value)
+    }
+}
+
+impl From<&SnafuSymbol> for char {
+    fn from(value: &SnafuSymbol) -> Self {
         match value {
             SnafuSymbol::Two => '2',
             SnafuSymbol::One => '1',
@@ -95,7 +148,13 @@ mod tests {
             #[test]
             fn $to_dec_name() {
                 let snafu: Snafu = $snafu_str.parse().unwrap();
-                assert_eq!(isize::from(snafu), $dec);
+                assert_eq!($dec, isize::from(snafu));
+            }
+
+            #[test]
+            fn $to_snafu_name() {
+                let snafu: Snafu = $dec.into();
+                assert_eq!($snafu_str, &snafu.to_string());
             }
         };
     }
@@ -114,4 +173,3 @@ mod tests {
     conversion_test! {"1=", 3, snafu_to_dec_12, dec_to_snafu_12}
     conversion_test! {"122", 37, snafu_to_dec_13, dec_to_snafu_13}
 }
-
