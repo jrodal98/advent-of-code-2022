@@ -1,7 +1,7 @@
 use std::{iter::Sum, ops::Add, str::FromStr};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub enum SnafuSymbol {
+enum SnafuSymbol {
     Two,
     One,
     Zero,
@@ -108,31 +108,21 @@ impl From<Snafu> for isize {
 impl From<isize> for Snafu {
     fn from(value: isize) -> Self {
         let mut value_remaining = value;
-        let mut carry_over = 0;
         let mut symbols: Vec<SnafuSymbol> = Vec::new();
 
-        while (value_remaining + carry_over) > 0 {
-            let r = (value_remaining + carry_over) % 5;
-            value_remaining = (value_remaining + carry_over) / 5;
+        while value_remaining > 0 {
+            let r = value_remaining % 5;
+            value_remaining = value_remaining / 5;
             let s = match r {
-                0 => {
-                    carry_over = 0;
-                    SnafuSymbol::Zero
-                }
-                1 => {
-                    carry_over = 0;
-                    SnafuSymbol::One
-                }
-                2 => {
-                    carry_over = 0;
-                    SnafuSymbol::Two
-                }
+                0 => SnafuSymbol::Zero,
+                1 => SnafuSymbol::One,
+                2 => SnafuSymbol::Two,
                 3 => {
-                    carry_over = 1;
+                    value_remaining += 1;
                     SnafuSymbol::DoubleMinus
                 }
                 4 => {
-                    carry_over = 1;
+                    value_remaining += 1;
                     SnafuSymbol::Minus
                 }
                 _ => unreachable!(),
