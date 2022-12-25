@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{iter::Sum, ops::Add, str::FromStr};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum SnafuSymbol {
@@ -12,6 +12,20 @@ pub enum SnafuSymbol {
 pub struct Snafu {
     /// most significant appears first
     symbols: Vec<SnafuSymbol>,
+}
+
+impl Sum for Snafu {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.reduce(|acc, s| acc + s).unwrap()
+    }
+}
+
+impl Add for Snafu {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self::Output {
+        Self::from(isize::from(self) + isize::from(rhs))
+    }
 }
 
 impl FromStr for Snafu {
